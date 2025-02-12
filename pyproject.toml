@@ -1,0 +1,50 @@
+[build-system]
+# build the package with [flit](https://flit.readthedocs.io)
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tpatools"
+dynamic = ["version"]
+description = "Tools for parsing and analyzing output of two-photon absorption calculations"
+authors = [{name = "Ashton Ryan Henderson", email = "arhender@lakeheadu.ca"}]
+requires-python = ">=3.10"
+dependencies = [
+	"numpy",
+	"pandas",
+	"matplotlib",
+]
+
+[project.optional-dependencies]
+testing = [
+    "pgtest~=1.3.1",
+    'pytest~=6.0',
+    "pytest-cov",
+    'pytest-regressions~=2.3',
+    "coveralls"
+]
+pre-commit = [
+    "pre-commit~=2.2",
+    "pylint"
+]
+docs = [
+    "sphinx",
+    "sphinxcontrib-contentui",
+    "sphinxcontrib-details-directive",
+    "sphinx-copybutton~=0.5.2",
+    "sphinx-autoapi~=3.0.0",
+    "sphinx-design~=0.4.1",
+    "sphinx-click~=4.4.0",
+    "myst-parser~=1.0.0",
+    "sphinx-book-theme~=1.0.1",
+    'sphinxcontrib-details-directive~=0.1.0',
+    "nbsphinx",
+    "sphinx-gallery",
+    "ipykernel"
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "tpatools.__version__"}
+
+[project.scripts]
+tpatools = "tpatools.scripts.tpatools_scriptswitcher:switcher"
