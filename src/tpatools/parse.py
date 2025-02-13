@@ -1,4 +1,13 @@
 from state import State
+import numpy as np
+import pandas as pd
+
+def is_int(value):
+    try:
+        x = int(value)
+        return True
+    except:
+        return False
 
 def parse_escf(filepath):
     filepath = Path(filepath)

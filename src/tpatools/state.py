@@ -1,3 +1,4 @@
+
 class State():
     """ a Class to record the data for a given excitation state"""
 
