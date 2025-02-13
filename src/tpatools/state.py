@@ -1,3 +1,4 @@
+import numpy as np
 
 class State():
     """ a Class to record the data for a given excitation state"""
@@ -75,3 +76,33 @@ class State():
             'energies' : energies,
             'symm' : symm,
         })
+
+
+    def get_contributions(self, fmo_relative = True):
+        if fmo_relative:
+            return self.fmo_contributions
+        else: 
+            return self.dominant_contributions
+
+    def get_coeff(self, occ, virt, fmo_relative = True):
+        if fmo_relative:
+            targdat = self.fmo_contributions
+        else:
+            targdat = self.dominant_contributions
+        for cont in targdat:
+            if cont['occ'] == occ and cont['virt'] == virt:
+                return cont['coeff']
+        
+        return 0
+
+
+    def get_cross_section(self):
+        cross_section = (
+            4 * (np.pi**2) * (State.bohr_radius**5) * State.fine_structure 
+            * self.photon_energies[0] * self.photon_energies[1] 
+            * self.transition_strength
+            / (State.light_speed * 0.1 / 27.2)
+        )
+        cross_section = cross_section * 10**50
+        return cross_section
+

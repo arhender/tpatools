@@ -1,7 +1,6 @@
+import numpy as np
+
 def voight(wavelength, intensity, width=25, shape=0.5, yscale=None, rng=None):
-"""
-    Voight line-broadening
-"""
     if rng is None:
         l = np.min(wavelength) - 0.25*(np.max(wavelength) - np.min(wavelength))
         r = np.min(wavelength) + 0.25*(np.max(wavelength) - np.min(wavelength))
@@ -60,10 +59,10 @@ def lorentzian(wavelength, intensity, width=25, rng=None, yscale=None):
     return x, y
 
 def tpabroaden(energy, cross_section, width=0.1, rng=(3,5)):
-"""
-    Line-broadening for simulation of a 2PA spectrum
-    Provide lifetime broadening parameter in eV (default 0.1)
-"""
+    """
+        Line-broadening for simulation of a 2PA spectrum
+        Provide lifetime broadening parameter in eV (default 0.1)
+    """
     x = np.linspace(rng[0],rng[1],5000)
     yvals = []
     cross_removelineshape = np.array(cross_section) * (np.pi * width)

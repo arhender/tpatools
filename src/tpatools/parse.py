@@ -1,4 +1,5 @@
-from state import State
+from tpatools.state import State
+from pathlib import Path
 import numpy as np
 import pandas as pd
 
@@ -58,40 +59,50 @@ def parse_escf(filepath):
                 #print(line)
                 reading_state.set_strength(float(line.split()[3]))
 
-
     return states
 
 def escf_table(filepath):
-    filepath = Path(filepath)
-    with filepath.open() as log:
-        reading_state = None
-        reading_strength = None
-        states = []
-        for line in log.readlines():
-            if 'number of occupied orbitals' in line:
-                homo = int(line.split()[-1])
-            if 'excitation' in line and is_int(line.split()[0]):
-                stateno = line.strip()
-                reading_state = State(stateno, homo=homo)
-            if 'Excitation energy:' in line and reading_state is not None:
-                excitation_energy = float(line.split()[2])
-                reading_state.set_excitation_energy(excitation_energy)
-                states.append(reading_state)
-            if 'Two-photon absorption amplitudes for transition to the ' in line:
-                index = int(re.sub('\\D', '', line.split()[7])) - 1
-                reading_state = states[index]
+    states = parse_escf(filepath)
+    values = {
+        'State' : [x.number for x in states],
+        'Excitation Energy /eV' : [x.excitation_energy * 27.2114 for x in states],
+        '2PA Strength /a.u.' : [x.transition_strength for x in states],
+        'Cross Section /GM' : [x.get_cross_section() for x in states],
+    }
+    df = pd.DataFrame(values)
+    return df
 
-            if 'transition strength [a.u.]:' in line:
-                reading_state.set_strength(float(line.split()[3]))
-   
-        values = {
-            'State' : [x.number for x in states],
-            'Excitation Energy /eV' : [x.excitation_energy * 27.2114 for x in states],
-            '2PA Strength /a.u.' : [x.transition_strength for x in states],
-            'Cross Section /GM' : [x.get_cross_section() for x in states],
-        }
-        df = pd.DataFrame(values)
-        return df
+#   def escf_table(filepath):
+#       filepath = Path(filepath)
+#       with filepath.open() as log:
+#           reading_state = None
+#           reading_strength = None
+#           states = []
+#           for line in log.readlines():
+#               if 'number of occupied orbitals' in line:
+#                   homo = int(line.split()[-1])
+#               if 'excitation' in line and is_int(line.split()[0]):
+#                   stateno = line.strip()
+#                   reading_state = State(stateno, homo=homo)
+#               if 'Excitation energy:' in line and reading_state is not None:
+#                   excitation_energy = float(line.split()[2])
+#                   reading_state.set_excitation_energy(excitation_energy)
+#                   states.append(reading_state)
+#               if 'Two-photon absorption amplitudes for transition to the ' in line:
+#                   index = int(re.sub('\\D', '', line.split()[7])) - 1
+#                   reading_state = states[index]
+#   
+#               if 'transition strength [a.u.]:' in line:
+#                   reading_state.set_strength(float(line.split()[3]))
+#      
+#           values = {
+#               'State' : [x.number for x in states],
+#               'Excitation Energy /eV' : [x.excitation_energy * 27.2114 for x in states],
+#               '2PA Strength /a.u.' : [x.transition_strength for x in states],
+#               'Cross Section /GM' : [x.get_cross_section() for x in states],
+#           }
+#           df = pd.DataFrame(values)
+#           return df
 
 
 
