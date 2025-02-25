@@ -48,5 +48,6 @@ docs = [
 version = {attr = "tpatools.__version__"}
 
 [project.scripts]
+tpa = "tpatools.Scripts.tpatab:main"
 # tpatools = "tpatools.scripts.tpatools_scriptswitcher:switcher"
 # put scripts and command line utilities down here
