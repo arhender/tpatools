@@ -2,6 +2,7 @@ import numpy as np
 from tpatools.tools import eV_to_nm
 import matplotlib.pyplot as plt
 from tpatools.plot import tpabroaden
+import ipywidgets as widgets
 
 def tpaplot(
         tabledict, 
@@ -107,3 +108,42 @@ def tpaplot(
     else:
         plt.savefig(save)
         plt.show()
+
+
+def widgetplot(tabledict, extraplotparams={}, colours=None):
+    widthwidget = widgets.FloatSlider(min=0.001,max=0.5, step=0.001,value=0.1,description="Broadening:")
+    x_offsetwidget = widgets.FloatSlider(min=-1,max=1,step=0.01,value=0,description="x offset:")
+    y_offsetwidget=widgets.FloatSlider(min=0,max=1000,step=10,value=100,description="y offset:")
+    xminslider = widgets.FloatSlider(min=0,max=4.9,step=0.1, value=3.5)
+    xmaxslider = widgets.FloatSlider(min=0.1,max=5,step=0.1, value=4.8)
+    showybox = widgets.Checkbox(value=False, description='Show y axis')
+    showlabelsbox=widgets.Checkbox(value=True, description='Show Labels')
+
+    if len(tabledict) > 1:
+        fromentryslider = widgets.IntSlider(min=1,max=len(tabledict), value=1)
+        toentryslider = widgets.IntSlider(min=1,max=len(tabledict),value=len(tabledict))
+    else:
+        fromentryslider = widgets.fixed(1)
+        toentryslider = widgets.fixed(1)
+
+    widgets.interact(
+        tpaplot, 
+        tabledict=widgets.fixed(tabledict),
+        width=widthwidget, 
+        #width = widgets.fixed(0.1),
+        x_offset = x_offsetwidget,
+        y_offset=y_offsetwidget,
+        xmin=xminslider,
+        xmax=xmaxslider,
+        colours = widgets.fixed(colours),
+        fromentry=fromentryslider,
+        toentry=toentryslider,
+        show_y = showybox,
+        show_labels = showlabelsbox,
+        save=widgets.fixed(None),
+        monocolour=widgets.fixed(None),
+        figure_size=widgets.fixed((6,6)),
+        extraplotparams=widgets.fixed(extraplotparams)
+    )
+
+
