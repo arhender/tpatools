@@ -194,4 +194,22 @@ def widgetplot(
         extraplotparams=widgets.fixed(extraplotparams)
     )
 
+def showtab(entryno, tabledict, roundto=3):
+    print(f'{list(tabledict.keys())[entryno -1]}:\n')
+    df = tabledict[list(tabledict.keys())[entryno - 1]]
+    print(
+        df.to_string(
+            index = False,
+            float_format=f'%.{roundto}f',
+        )
+    )
+
+def tpatabs(tabledict, roundto=3):
+    entryslider = widgets.IntSlider(min=1,max=len(tabledict))
+    widgets.interact(
+        showtab, 
+        entryno=entryslider, 
+        tabledict=widgets.fixed(tabledict),
+        roundto=widgets.fixed(roundto),
+    )
 
