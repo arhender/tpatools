@@ -110,12 +110,60 @@ def tpaplot(
         plt.show()
 
 
-def widgetplot(tabledict, extraplotparams={}, colours=None):
-    widthwidget = widgets.FloatSlider(min=0.001,max=0.5, step=0.001,value=0.1,description="Broadening:")
-    x_offsetwidget = widgets.FloatSlider(min=-1,max=1,step=0.01,value=0,description="x offset:")
-    y_offsetwidget=widgets.FloatSlider(min=0,max=1000,step=10,value=100,description="y offset:")
-    xminslider = widgets.FloatSlider(min=0,max=4.9,step=0.1, value=3.5)
-    xmaxslider = widgets.FloatSlider(min=0.1,max=5,step=0.1, value=4.8)
+def widgetplot(
+        tabledict, 
+        extraplotparams={}, 
+        colours=None,
+        widthslide=[0.001, 0.5, 0.001, 0.1],
+        xoffslide=[-1,1,0.01,0],
+        yoffslide=[0,1000,10,100],
+        xminslide=[0,5,0.1,3.5],
+        xmaxslide=[0.1,5,0.1,4.8],
+    ):
+    """
+    Create a jupyter notebook widget to interactively display tpa plots from
+    a dictionary of table values
+
+    :param dict extraplotparams: dictionary describing extra parameters supplied to the plot function (linewidth, etc.)
+    :param colours: colours used for the plotting
+    :type colours: list or None
+    :param list widthslide: list to determine linewidth slider range - format [min, max, step, value]
+    :param list xoffslide: x axis offset (in eV) - format [min, max, step, value]
+    :param list yoffslide: y axis offset (in GM) - format [min, max, step, value]
+    """
+    widthwidget = widgets.FloatSlider(
+        min=widthslide[0],
+        max=widthslide[1], 
+        step=widthslide[2],
+        value=widthslide[3],
+        description="Broadening:"
+    )
+    x_offsetwidget = widgets.FloatSlider(
+        min=xoffslide[0],
+        max=xoffslide[1], 
+        step=xoffslide[2],
+        value=xoffslide[3],
+        description="x offset:"
+    )
+    y_offsetwidget = widgets.FloatSlider(
+        min=yoffslide[0],
+        max=yoffslide[1], 
+        step=yoffslide[2],
+        value=yoffslide[3],
+        description="y offset:"
+    )
+    xminslider = widgets.FloatSlider(
+        min=xminslide[0],
+        max=xminslide[1], 
+        step=xminslide[2],
+        value=xminslide[3],
+    )
+    xmaxslider = widgets.FloatSlider(
+        min=xmaxslide[0],
+        max=xmaxslide[1], 
+        step=xmaxslide[2],
+        value=xmaxslide[3],
+    )
     showybox = widgets.Checkbox(value=False, description='Show y axis')
     showlabelsbox=widgets.Checkbox(value=True, description='Show Labels')
 
