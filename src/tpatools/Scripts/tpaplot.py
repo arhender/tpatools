@@ -85,7 +85,7 @@ def main():
     else:
         xmax = args.xmax
 
-    tpaplot(
+    tpaplot_multi(
         tabdict,
         width=args.broadening,
         x_offset=0,

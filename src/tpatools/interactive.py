@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from tpatools.plot import tpabroaden
 import ipywidgets as widgets
 
-def tpaplot(
+def tpaplot_multi(
         tabledict, 
         width, 
         x_offset, 
@@ -123,6 +123,7 @@ def widgetplot(
         xmaxslide=[0.1,5,0.1,4.8],
         label_offset_y = 20,
         label_offset_x = 0,
+        monocolour = None,
     ):
     """
     Create a jupyter notebook widget to interactively display tpa plots from
@@ -179,7 +180,7 @@ def widgetplot(
         toentryslider = widgets.fixed(1)
 
     widgets.interact(
-        tpaplot, 
+        tpaplot_multi, 
         tabledict=widgets.fixed(tabledict),
         width=widthwidget, 
         #width = widgets.fixed(0.1),
@@ -193,7 +194,7 @@ def widgetplot(
         show_y = showybox,
         show_labels = showlabelsbox,
         save=widgets.fixed(None),
-        monocolour=widgets.fixed(None),
+        monocolour=widgets.fixed(monocolour),
         figure_size=widgets.fixed((6,6)),
         extraplotparams=widgets.fixed(extraplotparams),
         label_offset_y = widgets.fixed(label_offset_y),
