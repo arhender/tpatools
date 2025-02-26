@@ -23,6 +23,8 @@ def tpaplot(
         monocolour=None, 
         figure_size=(6,6),
         extraplotparams={},
+        label_offset_y=20,
+        label_offset_x=0,
     ):
 
     fig, ax = plt.subplots(figsize=figure_size)
@@ -85,7 +87,7 @@ def tpaplot(
             if show_labels:
                 ax.annotate(
                     entryno,
-                    (np.min(x), y[0] + 20),
+                    (np.min(x) + label_offset_x, y[0] + label_offset_y),
                     color=current_colour
                 )
 
@@ -119,6 +121,8 @@ def widgetplot(
         yoffslide=[0,1000,10,100],
         xminslide=[0,5,0.1,3.5],
         xmaxslide=[0.1,5,0.1,4.8],
+        label_offset_y = 20,
+        label_offset_x = 0,
     ):
     """
     Create a jupyter notebook widget to interactively display tpa plots from
@@ -191,7 +195,9 @@ def widgetplot(
         save=widgets.fixed(None),
         monocolour=widgets.fixed(None),
         figure_size=widgets.fixed((6,6)),
-        extraplotparams=widgets.fixed(extraplotparams)
+        extraplotparams=widgets.fixed(extraplotparams),
+        label_offset_y = widgets.fixed(label_offset_y),
+        label_offset_x = widgets.fixed(label_offset_x),
     )
 
 def showtab(entryno, tabledict, roundto=3):
