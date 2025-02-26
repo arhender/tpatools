@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from tpatools.tools import eV_to_nm
 
 def voight(wavelength, intensity, width=25, shape=0.5, yscale=None, rng=None):
     if rng is None:
@@ -75,5 +77,77 @@ def tpabroaden(energy, cross_section, width=0.1, rng=(3,5)):
         )
     y = sum(yvals)
     return x, y
+
+
+def tpaplot(
+        tab, 
+        width=0.1, 
+        xmin=None, 
+        xmax=None, 
+        colour = None,
+        nm=False, 
+        save=None, 
+        figure_size=(6,6),
+        extraplotparams={},
+        default_buffer_x_edge = 1,
+    ):
+    """
+    Function to plot a simulated 2PA spectrum, given a table containing excitation energies and cross sections, as output by the tpaplot.parse.escf_table function
+    """
+
+    fig, ax = plt.subplots(figsize=figure_size)
+
+    cross_section = tab['Cross Section /GM'].values
+    ex_energy = tab['Excitation Energy /eV'].values
+
+    if xmin is None:
+        xmin = np.min(ex_energy) - default_buffer_x_edge
+
+    if xmax is None:
+        xmax = np.max(ex_energy) + default_buffer_x_edge
+
+    rng = (xmin, xmax)
+
+
+
+    x, y = tpabroaden(
+        ex_energy, 
+        cross_section,
+        rng=rng,
+        width=width,
+    )
+
+    if nm:
+        x = eV_to_nm(x) * 2
+
+
+    if colour is not None:
+        ax.plot(
+            x,
+            y,
+            color=colour,
+            **extraplotparams,
+        )
+    else:
+        ax.plot(
+            x,
+            y,
+            color=colour,
+            **extraplotparams,
+        )
+
+    ax.set_ylabel('$\\sigma^{2PA}$ /GM')
+    if nm:
+        ax.set_xlabel('$\\lambda$ /nm')
+    else:
+        ax.set_xlabel('Energy /eV')
+    
+    fig.tight_layout()
+
+    if save is None:    
+        plt.show()
+    else:
+        plt.savefig(save)
+        plt.show()
 
 
