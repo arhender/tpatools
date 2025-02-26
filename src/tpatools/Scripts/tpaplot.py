@@ -1,4 +1,4 @@
-from tpatools.interactive import tpaplot
+from tpatools.plot import tpaplot
 import numpy as np
 import argparse
 import sys
@@ -73,32 +73,24 @@ def main():
                 print('The provided filepath does not exist, please check your input and try again')
                 sys.exit() 
 
-    tabdict = {'table' : escf_table(filepath)}
+    tab = escf_table(filepath)
 
     if args.xmin is None:
-        xmin = np.min(tabdict['table']['Excitation Energy /eV']) - 1
+        xmin = np.min(tab['Excitation Energy /eV']) - 1
     else:
         xmin = args.xmin
 
     if args.xmax is None:
-        xmax = np.max(tabdict['table']['Excitation Energy /eV']) + 1
+        xmax = np.max(tab['Excitation Energy /eV']) + 1
     else:
         xmax = args.xmax
 
-    tpaplot_multi(
-        tabdict,
+    tpaplot(
+        tab,
         width=args.broadening,
-        x_offset=0,
-        y_offset=0,
         xmin = xmin,
         xmax= xmax,
-        fromentry=1,
-        toentry=1,
-        justone=True,
-        show_y=True,
         nm=args.nm,
         save=args.savefile,
-        showlegend=False,
-        show_labels=False,
     )
 
