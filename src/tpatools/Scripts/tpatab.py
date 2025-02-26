@@ -34,23 +34,30 @@ def main():
     args = parser.parse_args()
 
 
+    fallback_names = ['escf.out', 'bse.out', 'tpa.out']
+
     filepath = None
     if args.filepath is None:
-        potential_names = ['escf.out', 'bse.out', 'tpa.out']
-        for name in potential_names:
+        for name in fallback_names:
             if Path(name).is_file():
                 filepath = Path(name)
                 break
         
         if filepath is None: 
-            print(f'No output filename has been provided. As a fallback, the program has checked and found no files from the following default namelist in the directory:\n\n{"\n".join(potential_names)}\n\nPlease retry and specify the name of your output file' )
+            print(f'No output filename has been provided. As a fallback, the program has checked and found no files from the following default namelist in the directory:\n\n{"\n".join(fallback_names)}\n\nPlease retry and specify the name of your output file' )
             sys.exit()
     else:
         if Path(args.filepath).is_file():
             filepath = Path(args.filepath)
         else:
-            print('The provided filepath does not exist, please check your input and try again')
-            sys.exit()
+            for name in fallback_names:
+                if (Path(args.filepath) / name).is_file():
+                    filepath = Path(args.filepath) / name
+                    break
+
+            if filepath is None:
+                print('The provided filepath does not exist, please check your input and try again')
+                sys.exit()
 
     df = escf_table(filepath)
     if args.verbose == False:
