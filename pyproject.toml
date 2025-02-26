@@ -7,13 +7,14 @@ build-backend = "setuptools.build_meta"
 name = "tpatools"
 dynamic = ["version"]
 description = "Tools for parsing and analyzing output of two-photon absorption calculations"
-authors = [{name = "Ashton Ryan Henderson", email = "arhender@lakeheadu.ca"}]
+authors = [{name = "Ashton Ryan Henderson", email = "arhende1@ualberta.ca"}]
 requires-python = ">=3.10"
 dependencies = [
-	"numpy",
-	"pandas",
-	"matplotlib",
-	"ipywidgets",
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "ipywidgets",
+    "jinja2",
 ]
 
 [project.optional-dependencies]
@@ -49,5 +50,6 @@ version = {attr = "tpatools.__version__"}
 
 [project.scripts]
 tpa = "tpatools.Scripts.tpatab:main"
+tpaplot = "tpatools.Scripts.tpaplot:main"
 # tpatools = "tpatools.scripts.tpatools_scriptswitcher:switcher"
 # put scripts and command line utilities down here

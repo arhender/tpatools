@@ -40,7 +40,6 @@ def main():
         for name in potential_names:
             if Path(name).is_file():
                 filepath = Path(name)
-                print('filepath found!')
                 break
         
         if filepath is None: 
@@ -49,7 +48,6 @@ def main():
     else:
         if Path(args.filepath).is_file():
             filepath = Path(args.filepath)
-            print('filepath exists!')
         else:
             print('The provided filepath does not exist, please check your input and try again')
             sys.exit()
@@ -75,6 +73,7 @@ def main():
                 float_format=f'%.{args.round}f',
             )
         )
+
 
 
 
