@@ -24,11 +24,16 @@ class State():
         self.photon_energies = [None, None]
         self.transition_strength = None
 
+        self.oscillator_strengh = None
+
         self.dominant_contributions = []
         self.fmo_contributions = []
 
     def set_strength(self, value):
         self.transition_strength = value
+
+    def set_osc(self, value):
+        self.oscillator_strength = value
 
     def set_excitation_energy(self, excitation_energy):
         self.excitation_energy = excitation_energy

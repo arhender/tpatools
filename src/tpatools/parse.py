@@ -10,7 +10,7 @@ def is_int(value):
     except:
         return False
 
-def parse_escf(filepath):
+def parse_escf(filepath, nontpa=False):
     filepath = Path(filepath)
     states = []
     homo = None
@@ -30,6 +30,10 @@ def parse_escf(filepath):
             if 'Excitation energy:' in line and reading_state is not None:
                 excitation_energy = float(line.split()[2])
                 reading_state.set_excitation_energy(excitation_energy)
+
+            if 'length representation' in line and reading_state is not None:
+                if reading_state.oscillator_strength is None:
+                    reading_state.set_osc(float(line.split()[2]))
 
             if reading_contributions:
                 #print(line)
@@ -58,6 +62,9 @@ def parse_escf(filepath):
             if 'transition strength [a.u.]:' in line:
                 #print(line)
                 reading_state.set_strength(float(line.split()[3]))
+
+            if 'all done' in line and reading_state is not None and reading_state not in states:
+                states.append(reading_state)
 
     return states
 
