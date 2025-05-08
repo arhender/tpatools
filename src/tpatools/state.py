@@ -24,10 +24,11 @@ class State():
         self.photon_energies = [None, None]
         self.transition_strength = None
 
-        self.oscillator_strengh = None
+        self.oscillator_strength = None
 
         self.dominant_contributions = []
         self.fmo_contributions = []
+        self.transition_dipole = {}
 
     def set_strength(self, value):
         self.transition_strength = value
@@ -38,6 +39,14 @@ class State():
     def set_excitation_energy(self, excitation_energy):
         self.excitation_energy = excitation_energy
         self.photon_energies = [excitation_energy/2, excitation_energy/2]
+
+    def set_transition_dipole(self, norm, x, y, z):
+        self.transition_dipole = {
+            'norm' : norm,
+            'x' : x,
+            'y' : y,
+            'z' : z,
+        }
 
     def add_contribution(self, line):
         occ = int(line.split()[0])
