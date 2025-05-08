@@ -57,7 +57,21 @@ def main():
         default=1,
         help='excited state number'
     )
+    parser.add_argument(
+        '-sort',
+        '--sortlist', 
+        default=None,
+        nargs="?",
+        help='filepath pointing to a text file containing the desired keys/filenames sorted in the order for the output table',
+    )
     args = parser.parse_args()
+
+    if args.sortlist is not None:
+        with Path(args.sortlist).open() as sortfile:
+            orderedkeys = [x.strip() for x in sortfile if x.strip != '']
+    else:
+        orderedkeys = None
+
     df = gather_state_data(
         args.basedir,
         outfilename = args.escfname,
@@ -68,6 +82,7 @@ def main():
         suppress_egrad_warning = True,
         tabulate = True,
         latexnames=args.latexnames,
+        orderedkeys=orderedkeys,
     )
     if args.tex == True:
         print(
