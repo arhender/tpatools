@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import re
 
-au_debye_convfactor = 2.54158
 
 def is_int(value):
     try:
@@ -179,24 +178,11 @@ def parse_egrad(filepath):
         Obtain permanent and transition dipole moments from a TPA egrad calculation
     """
     data = {}
+    au_debye_convfactor = 2.54158
     filepath = Path(filepath)
     with filepath.open() as logfile:
         log = [x.strip() for x in logfile.readlines() if x.strip() != '']
-        #grndex = log.index('Ground state')
-        #grnddip = {}
-        #for i, line in enumerate(log[grndex:]):
-        #    try:
-        #        if line.split()[0] == 'x':
-        #            xind = log.index(i)
-        #            grnddip = {
-        #                'x' : float(line.split()[3]) * au_debye_convfactor,
-        #                'y' : float(log[xind + 1].split()[3]) * au_debye_convfactor,
-        #                'z' : float(log[xind + 2].split()[3]) * au_debye_convfactor,
-        #                'norm' : float(log[xind + 2].split()[-1]),
-        #            }
-        #            break
-        #    except IndexError:
-        #        pass
+
         grndex = log.index('Electric dipole moment:')
         data['mu_00'] = {
             'x' : round(float(log[grndex + 2].split()[3]) * au_debye_convfactor, 6),
@@ -205,14 +191,10 @@ def parse_egrad(filepath):
             'norm' : float(log[grndex + 4].split()[-1]),
         }
 
-
-
+        # Determine which excited state has been selected by $exopt, then grab the relevant transition dipole moment
         transition_indices = [x for x, line in enumerate(log) if line == 'Electric transition dipole moment (length rep.):']
-        
         exstateno = [int(x.split()[3]) for x in log if re.search('Excited state no\.    .+ chosen for optimization', x)][0]
         tndex = transition_indices[exstateno - 1]
-
-
         data['mu_01'] = {
             'x' : round(float(log[tndex + 1].split()[1]) * au_debye_convfactor, 6),
             'y' : round(float(log[tndex + 2].split()[1]) * au_debye_convfactor, 6),
@@ -232,8 +214,115 @@ def parse_egrad(filepath):
         
 
 
-        
+def get_ground_state_dipole(logfile):
+    """
+        Grab the ground state dipole moment from an escf output file
+    """
+    with logfile.open() as log:
+        outlines = [x.strip() for x in log.readlines()]
+        grindex = outlines.index('Ground state')
+        for line in outlines[grindex:]:
+            if 'Norm / debye' in line:
+                try:
+                    return float(line.split()[7])
+                except IndexError:
+                    print(f"""
+                    hmm...
+                    there should be a dipole moment here...
+                    but something is WRONG
+
+                    Check your output file ({logfile.resolve()})
+                    or maybe write a better parser next time, bozo
+                    """)
+
+    print(f'something wrong, check outfile ({logfile.resolve()})')
+    return 'NA'
+
+def gather_state_data(
+        basedir, 
+        outfilename = 'escf.out', 
+        egradoutname = 'egrad.out',
+        state=1, 
+        egradavail=False,
+        orderedkeys=None,
+        fulldirnames = False,
+        suppress_egrad_warning = False,
+        tabulate = False,
+        latexnames = False,
+    ):
+    """
+        Recursively gather excitation energies, transition dipoles, cross sections, and dipole moments for all output files in a given directory and compile them into a dictionary, with keys provided by the directory names
+    """
+
+    basedir = Path(basedir)
+    filelist = list(basedir.rglob(outfilename))
+
+    if orderedkeys is not None:
+        filelist = sorted(
+            filelist,
+            key=lambda x: orderedkeys.index(x.parent.name)
+        )
+    elif fulldirnames:
+        filelist = sorted(filelist, key=lambda x: str(x.relative_to(basedir).parent))
+    else:
+        filelist = sorted(filelist, key=lambda x: str(x.parent.name))
 
 
+    collectdata = {}
+    for logfile in filelist:
+        try:
+            statedata = parse_escf(logfile)[state - 1]
+        except IndexError:
+            print(f'Excited state {state} not available for file {logfile.resolve()}')
+            continue
+
+        try:
+            dipdata = parse_egrad(logfile.parent / egradoutname)
+            mu_00 = dipdata['mu_00']['norm']
+            mu_01 = dipdata['mu_01']['norm']
+            mu_11 = dipdata['mu_11']['norm']
+        except FileNotFoundError:
+            if suppress_egrad_warning == False:
+                print(f'No egrad outfile in directory {logfile.parent}')
+            mu_00 = get_ground_state_dipole(logfile)
+            mu_01 = statedata.transition_dipole['norm']
+            mu_11 = 'NA'
+
+        if fulldirnames:
+            key = str(logfile.relative_to(basedir).parent)
+        else:
+            key = logfile.parent.name
+
+        try:
+            if latexnames:
+                collectdata[key] = {
+                    '$\\Delta E$ /eV' : statedata.excitation_energy * 27.2114,
+                    '$\delta^{\\textrm{2PA}}$ /a.u.' : statedata.transition_strength,
+                    '$\\sigma^{\\textrm{2PA}}$ /GM' : statedata.get_cross_section(),
+                    '$|\\mu_{00}|$ /D' : mu_00,
+                    '$|\\mu_{01}|$ /D' : mu_01,
+                    '$|\\mu_{11}|$ /D' : mu_11,
+                }
+
+            else:
+                collectdata[key] = {
+                    'Excitation Energy /eV' : statedata.excitation_energy * 27.2114,
+                    '2PA Strength /a.u.' : statedata.transition_strength,
+                    'Cross Section /GM' : statedata.get_cross_section(),
+                    'Ground State Dipole Moment /D' : mu_00,
+                    'Transition Dipole Moment /D' : mu_01,
+                    'Excited State Dipole Moment /D' : mu_11,
+                }
+        except:
+            print(f'Errors in extracting data in subdir {logfile.parent}, skipping for now')
+            continue
+
+    if tabulate:
+        return pd.DataFrame.from_dict(
+            collectdata,
+            orient='index',
+        )
+    else:
+        return collectdata
 
 
