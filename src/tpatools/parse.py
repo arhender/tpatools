@@ -249,6 +249,8 @@ def gather_state_data(
         suppress_egrad_warning = False,
         tabulate = False,
         latexnames = False,
+        compactnames = False,
+        verbose_output = False,
     ):
     """
         Recursively gather excitation energies, transition dipoles, cross sections, and dipole moments for all output files in a given directory and compile them into a dictionary, with keys provided by the directory names
@@ -270,11 +272,15 @@ def gather_state_data(
 
     collectdata = {}
     for logfile in filelist:
+        if verbose_output:
+            print(f'Analyzing log file {logfile.resolve()}')
         try:
             statedata = parse_escf(logfile)[state - 1]
         except IndexError:
             print(f'Excited state {state} not available for file {logfile.resolve()}')
             continue
+        except:
+            print(f'Error parsing output file {logfile.resolve()}, check for issues')
 
         try:
             dipdata = parse_egrad(logfile.parent / egradoutname)
@@ -302,6 +308,15 @@ def gather_state_data(
                     '$|\\mu_{00}|$ /D' : mu_00,
                     '$|\\mu_{01}|$ /D' : mu_01,
                     '$|\\mu_{11}|$ /D' : mu_11,
+                }
+            elif compactnames:
+                collectdata[key] = {
+                    'ex. E' : statedata.excitation_energy * 27.2114,
+                    'delta /a.u.' : statedata.transition_strength,
+                    'sigma /GM' : statedata.get_cross_section(),
+                    'mu_00' : mu_00,
+                    'mu_01' : mu_01,
+                    'mu_11' : mu_11,
                 }
 
             else:

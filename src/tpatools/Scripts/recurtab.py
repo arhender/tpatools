@@ -44,6 +44,12 @@ def main():
         help='name parameters using latex-ready notation',
     )
     parser.add_argument(
+        '-c',
+        '--compactnames',
+        action='store_true',
+        help='name parameters using a short simple compact notation for easy viewing',
+    )
+    parser.add_argument(
         '-r',
         '--round',
         type=int,
@@ -64,6 +70,18 @@ def main():
         nargs="?",
         help='filepath pointing to a text file containing the desired keys/filenames sorted in the order for the output table',
     )
+    parser.add_argument(
+        '-w',
+        '--writefile',
+        default=None,
+        help='An output filename to write the table to a csv'
+    )
+    parser.add_argument(
+        '-x',
+        '--excelfile',
+        default=None,
+        help='An output filename to write the table to an excel file'
+    )
     args = parser.parse_args()
 
     if args.sortlist is not None:
@@ -82,8 +100,21 @@ def main():
         suppress_egrad_warning = True,
         tabulate = True,
         latexnames=args.latexnames,
+        compactnames=args.compactnames,
         orderedkeys=orderedkeys,
     )
+
+    if args.writefile is not None:
+        df.to_csv(
+            args.writefile,
+            float_format=f'%.{args.round}f',
+        )
+    if args.excelfile is not None:
+        df.to_excel(
+            args.excelfile,
+            float_format=f'%.{args.round}f',
+        )
+
     if args.tex == True:
         print(
             df.to_latex(
