@@ -78,10 +78,10 @@ def parse_ricc2(filepath):
             number,\ssymmetry,\smultiplicity:\s
             +(?P<stateno>\d+)\s+
             (?P<irrep>\S+)\s+
-            (?P<multiplicity>\d).*
+            (?P<multiplicity>\d).*?
             frequency\s+:\s+
             (?P<excitation_energy>\d+\.\d+)
-            \s+a\.u.*
+            \s+a\.u.*?
             oscillator\sstrength\s\(length\sgauge\)
             \s+:\s+(?P<oscillator_strength>\d+\.\d+)
         """,
@@ -90,20 +90,20 @@ def parse_ricc2(filepath):
 
     pattern_2PA = re.compile(
         r"""
-            STATE\sNO\.:\s+.*
+            STATE\sNO\.:\s+.*?
             (?P<stateno>\d)\s*
             SYMMETRY:\s
             (?P<irrep>\S+)\s+
             MULTIPLICITY:\s+
-            (?P<multiplicity>\d+).*
+            (?P<multiplicity>\d+).*?
             EXCI\.\sENERGY:\s+
             (?P<excitation_energy>\d+\.\d+)
             \sa\.u.*
             1ST\sPHOTON:\s+
-            (?P<photon_1>\d+\.\d+)\sa\.u.*
+            (?P<photon_1>\d+\.\d+)\sa\.u.*?
             2ND\sPHOTON:\s+
-            (?P<photon_2>\d+\.\d+)\sa\.u.*
-            ROTATIONALLY\sAVERAGED\sVALUES:.*
+            (?P<photon_2>\d+\.\d+)\sa\.u.*?
+            ROTATIONALLY\sAVERAGED\sVALUES:.*?
             Linear:\s+
             (?P<tpa_strength>-?\d+\.\d+)
         """,
