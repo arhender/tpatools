@@ -135,3 +135,22 @@ class State():
         cross_section = cross_section * 10**50
         return cross_section
 
+    def as_dict(self):
+        if self.permanent_dipole != {}:
+            return {
+                'Excitation Energy /eV' : self.excitation_energy * 27.2114,
+                '2PA Strength /a.u.' : self.transition_strength,
+                '2PA Cross Section /GM' : self.get_cross_section(),
+                'Oscillator Strength /a.u.' : self.oscillator_strength,
+                'Transition Dipole Moment /D' : self.transition_dipole,
+                'Permanent Dipole Moment /D' : self.permanent_dipole,
+            }
+        else:
+            return {
+                'Excitation Energy /eV' : self.excitation_energy * 27.2114,
+                '2PA Strength /a.u.' : self.transition_strength,
+                '2PA Cross Section /GM' : self.get_cross_section(),
+                'Oscillator Strength /a.u.' : self.oscillator_strength,
+                'Transition Dipole Moment /D' : self.transition_dipole,
+            }
+
