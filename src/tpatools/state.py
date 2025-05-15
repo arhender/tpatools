@@ -17,8 +17,9 @@ class State():
         self.mult = pieces[1]
         self.irrep = pieces[2]
 
-        self.homo = int(homo)
-        self.lumo = homo + 1
+        if homo is not None:
+            self.homo = int(homo)
+            self.lumo = homo + 1
 
         self.excitation_energy = None
         self.photon_energies = [None, None]
@@ -30,15 +31,21 @@ class State():
         self.fmo_contributions = []
         self.transition_dipole = {}
 
+        self.permanent_dipole = {}
+
     def set_strength(self, value):
         self.transition_strength = value
 
     def set_osc(self, value):
         self.oscillator_strength = value
 
-    def set_excitation_energy(self, excitation_energy):
+    def set_excitation_energy(self, excitation_energy, degenerateTPA=True):
         self.excitation_energy = excitation_energy
-        self.photon_energies = [excitation_energy/2, excitation_energy/2]
+        if degenerateTPA:
+            self.photon_energies = [excitation_energy/2, excitation_energy/2]
+
+    def set_photon_energies(self, photon_energies):
+        self.photon_energies = photon_energies
 
     def set_transition_dipole(self, norm, x, y, z):
         self.transition_dipole = {
@@ -47,6 +54,14 @@ class State():
             'y' : y,
             'z' : z,
         }
+    def set_permanent_dipole(self, norm, x, y, z):
+        self.permanent_dipole = {
+            'norm' : norm,
+            'x' : x,
+            'y' : y,
+            'z' : z,
+        }
+
 
     def add_contribution(self, line):
         occ = int(line.split()[0])

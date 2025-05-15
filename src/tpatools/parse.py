@@ -178,7 +178,7 @@ def parse_egrad(filepath):
         Obtain permanent and transition dipole moments from a TPA egrad calculation
     """
     data = {}
-    au_debye_convfactor = 2.54158
+    au_debye_convfactor = 2.541746472
     filepath = Path(filepath)
     with filepath.open() as logfile:
         log = [x.strip() for x in logfile.readlines() if x.strip() != '']
@@ -211,6 +211,145 @@ def parse_egrad(filepath):
         }
 
     return data
+
+def _multno_to_text(nom):
+    try:
+        nom = int(nom)
+    except TypeError:
+        print('give me a number next time idiot')
+    match nom:
+        case 1:
+            return 'singlet'
+        case 2:
+            return 'doublet'
+        case 3:
+            return 'triplet'
+        case 4:
+            return 'quartet'
+        case 5:
+            return 'quintet'
+        case 6:
+            return 'sextet'
+        case 7:
+            return 'septet'
+        case 8:
+            return 'octet'
+        case 9:
+            return 'nonet'
+        case _:
+            return 'idk man'
+
+def _parse_ricc2_name(line):
+    name = f'{line.split()[4]} {_multno_to_text(line.split()[6])} {line.split()[5]} excitation'
+    return name
+
+def _osc_to_mu_01(osc_strength, e_hartree):
+    return np.sqrt((3*osc_strength) / (2*e_hartree)) * 2.541746472
+
+
+def parse_ricc2(filepath):
+    filepath = Path(filepath)
+    data = {
+        'mu_00' : None,
+        'occ_vir_info' : {},
+        'states' : [],
+    }
+    with filepath.open() as logfile:
+        au_to_debye_convfactor = 2.541746472
+        log = [x.strip() for x in logfile.readlines() if x.strip() != '']
+
+        modex = log.index('orbitals in total:')
+        data['occ_vir_info'] = {
+            'frozen occupied' : int(log[modex + 2].split()[-1]),
+            'active occupied' : int(log[modex + 3].split()[-1]),
+            'active virtual' : int(log[modex + 4].split()[-1]),
+            'frozen virtual' : int(log[modex + 5].split()[-1]),
+            'total no' : int(log[modex+6].split()[-1]),
+        }
+
+        grndex = log.index('*<<<<<<<<<<            GROUND STATE FIRST-ORDER PROPERTIES             >>>>>>>>>>>*')
+        for i, line in enumerate(log[grndex:]):
+            if 'dipole moment:' in line:
+                mu_00dex = i + grndex
+                data['mu_00'] = {
+                    'norm' : float(log[mu_00dex + 5].split()[8]),
+                    'x' : float(log[mu_00dex + 2].split()[-1]) * au_to_debye_convfactor,
+                    'y' : float(log[mu_00dex + 3].split()[-1]) * au_to_debye_convfactor,
+                    'z' : float(log[mu_00dex + 4].split()[-1]) * au_to_debye_convfactor,
+                }
+                break
+
+        opadex = log.index('*<<<<<<<<<<<<  ONE-PHOTON ABSORPTION STRENGTHS  >>>>>>>>>>>>>*')
+        statenames = []
+
+        for i, line in enumerate(log[opadex:]):
+            if 'number, symmetry, multiplicity' in line:
+                ### Currently just translates into how it is presented in escf output
+                ## i.e. "1 singlet a excitation"
+                ## Should refactor code (i.e., the State fucntion and escf parser) to make this more universal and less dumb at some point
+
+                name = _parse_ricc2_name(line)
+                data['states'].append(State(name))
+                statenames.append(name)
+
+            if 'frequency :' in line:
+                data['states'][-1].set_excitation_energy(float(line.split()[3]), degenerateTPA = False)
+
+            if 'oscillator strength (length gauge)' in line:
+                osc = float(line.split()[-1])
+                data['states'][-1].set_osc(osc)
+                data['states'][-1].set_transition_dipole(
+                    _osc_to_mu_01(osc, data['states'][-1].excitation_energy),
+                    'NA',
+                    'NA',
+                    'NA',
+                )
+                
+
+            if 'TWO-PHOTON ABSORPTION STRENGTHS' in line:
+                tpadex = log.index(line)
+                break
+
+        #tpadex = log.index('*<<<<<<<<<<<<  TWO-PHOTON ABSORPTION STRENGTHS  >>>>>>>>>>>>>*')
+        for i, line in enumerate(log[tpadex:]):
+            if 'STATE NO.:' in line:
+                statenodex = tpadex + i
+                name = f'{line.split()[-1]} {_multno_to_text(log[statenodex + 1].split()[-1])} {log[statenodex + 1].split()[1]} excitation'
+                stateno = statenames.index(name)
+
+                data['states'][stateno].set_photon_energies([
+                    float(log[statenodex + 5].split()[3]),
+                    float(log[statenodex + 6].split()[3]),
+                ])
+
+                data['states'][stateno].set_strength(
+                    float(log[statenodex + 20].split()[2])
+                )
+
+            if 'EXCITED STATE PROPERTIES' in line:
+                expropdex = log.index(line)
+                break
+
+        for i, line in enumerate(log[expropdex:]):
+            if 'number, symmetry, multiplicity:' in line:
+                
+                name = _parse_ricc2_name(line)
+                stateno = statenames.index(name)
+                
+            if 'Analysis of relaxed properties:' in line:
+                if 'dipole moment' in log[i + expropdex + 2]:
+                    dipdex = i + expropdex + 2
+                    data['states'][stateno].set_permanent_dipole(
+                        float(log[dipdex + 5].split()[8]),
+                        float(log[dipdex + 2].split()[-1]) * au_to_debye_convfactor,
+                        float(log[dipdex + 3].split()[-1]) * au_to_debye_convfactor,
+                        float(log[dipdex + 4].split()[-1]) * au_to_debye_convfactor,
+                    )
+
+
+    return data
+
+
         
 
 
