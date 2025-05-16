@@ -32,8 +32,13 @@ def _multno_to_text(nom):
         case _:
             return 'jeepers how many unpaired spins are in this thing. figure it out yourself'
 
-def _state_key(statedat):
-    key=f'{_multno_to_text(statedat['multiplicity'])[0].capitalize()}{statedat['stateno']}/{statedat['irrep']}'
+def _state_key(statedat, overallno=None):
+    #key=f'{_multno_to_text(statedat['multiplicity'])[0].capitalize()}{statedat['stateno']}/{statedat['irrep']}'
+    if overallno is None:
+        key = f'{statedat["stateno"]}{statedat["irrep"]}'
+    else:
+        key = f'{_multno_to_text(statedat["multiplicity"])[0].capitalize()}' 
+        key = key + f'{overallno} {statedat["stateno"]}{statedat["irrep"]}'
     return key
 
 def _parse_ricc2_name(statedat):
@@ -98,7 +103,7 @@ def parse_ricc2(filepath):
             (?P<multiplicity>\d+).*?
             EXCI\.\sENERGY:\s+
             (?P<excitation_energy>\d+\.\d+)
-            \sa\.u.*
+            \sa\.u.*?
             1ST\sPHOTON:\s+
             (?P<photon_1>\d+\.\d+)\sa\.u.*?
             2ND\sPHOTON:\s+
@@ -113,21 +118,21 @@ def parse_ricc2(filepath):
     pattern_exprop = re.compile(
         r"""
             Excited\sstate\sreached\sby\stransition:\s+
-            model:\sCC2.*number,\ssymmetry,\smultiplicity:\s+
+            model:\sCC2.*?number,\ssymmetry,\smultiplicity:\s+
             (?P<stateno>\d+)\s+
             (?P<irrep>\S+)\s+
-            (?P<multiplicity>\d+).*
+            (?P<multiplicity>\d+).*?
             frequency\s+:\s+
-            (?P<excitation_energy>\d+\.\d+).*
-            Analysis\sof\srelaxed\sproperties:.*
-            dipole\smoment:.*
+            (?P<excitation_energy>\d+\.\d+).*?
+            Analysis\sof\srelaxed\sproperties:.*?
+            dipole\smoment:.*?
             x\s+(?P<mu_11_x>-?\d+\.\d+)\s+
             y\s+(?P<mu_11_y>-?\d+\.\d+)\s+
             z\s+(?P<mu_11_z>-?\d+\.\d+)\s+
-            \|\sdipole\smoment\s\|.*=\s+
+            \|\sdipole\smoment\s\|.*?=\s+
             (?P<mu_11_norm>-?\d+\.\d+)
             \s+debye
-            .*Analysis\sof\sunrelaxed\sproperties
+            .*?Analysis\sof\sunrelaxed\sproperties
         """,
         re.DOTALL | re.X
     )
@@ -143,73 +148,146 @@ def parse_ricc2(filepath):
     for vect in ['x', 'y', 'z']:
         data['mu_00'][vect] = float(mu_00dat[f'mu_00_{vect}']) * au_debye_convfactor
 
-    states = {}
+    states = []
+    # following logic needed in case of for ex singlets and triplets in same calc
 
-    for match in pattern_1PA.finditer(log):
+    for i, match in enumerate(pattern_1PA.finditer(log)):
+
         statedat = match.groupdict()
-        key = _state_key(statedat)
 
-        if key not in states:
-            states[key] = State(_parse_ricc2_name(statedat))
-            states[key].set_excitation_energy(
-                float(statedat['excitation_energy']),
-                degenerateTPA = False,
-            )
-            states[key].set_osc(
-                float(statedat['oscillator_strength'])
-            )
-            states[key].set_transition_dipole(
-                _osc_to_mu_01(
-                    states[key].oscillator_strength,
-                    states[key].excitation_energy,
-                ),
-                *['NA', 'NA', 'NA']
-            )
+        states.append(
+            State(_parse_ricc2_name(statedat))
+        )
+        states[i].set_excitation_energy(
+            float(statedat['excitation_energy']),
+            degenerateTPA=False,
+        )
+        states[i].set_osc(
+            float(statedat['oscillator_strength'])
+        )
 
-    for match in pattern_2PA.finditer(log):
-        statedat = match.groupdict()
-        key = _state_key(statedat)
-        if key not in states:
-            ## not sure if this si really needed, shoudl always be present
-            ## as far as i know
-            states[key] = State(_parse_ricc2_name(statedat))
-            states[key].set_excitation_energy(
-                float(statedat['excitation_energy']),
-                degenerateTPA = False,
-            )
-        
-        states[key].set_photon_energies([
-            float(statedat['photon_1']),
-            float(statedat['photon_2']),
-        ])
-
-        states[key].set_strength(
-            float(statedat['tpa_strength'])
+        states[i].set_transition_dipole(
+            _osc_to_mu_01(
+                states[i].oscillator_strength,
+                states[i].excitation_energy,
+            ),
+            *['NA', 'NA', 'NA']
         )
 
 
-    for match in pattern_exprop.finditer(log):
+    for i, match in enumerate(pattern_2PA.finditer(log)):
         statedat = match.groupdict()
-        key = _state_key(statedat)
-        if key not in states:
-            states[key] = State(_parse_ricc2_name(statedat))
-            states[key].set_excitation_energy(
-                float(statedat['excitation_energy']),
-                degenerateTPA = False,
-            )
 
+        states[i].set_photon_energies([
+            float(statedat['photon_1']),
+            float(statedat['photon_2']),
+        ])
+        states[i].set_strength(
+            float(statedat['tpa_strength'])
+        )
+
+    for i, match in enumerate(pattern_exprop.finditer(log)):
+        statedat = match.groupdict()
+
+        print(statedat)
         permdip_axes = []
         for cart in ['x', 'y', 'z']:
             permdip_axes.append(
                 float(statedat[f'mu_11_{cart}']) * au_debye_convfactor
             )
-        states[key].set_permanent_dipole(
+        states[i].set_permanent_dipole(
             float(statedat['mu_11_norm']),
             *permdip_axes
         )
 
     data['states'] = states
     return data
+
+        
+def parse_escf(
+        filepath,
+        search_for_egrad = True,
+        states_only = False, # for backwards compatibility to my old version, which just returned a list of State objects
+        egradname = 'egrad.out',
+    ):
+    filepath = Path(filepath)
+    with filepath.open() as logfile:
+        log = logfile.read()
+
+    if search_for_egrad and filepath.parent / egradname.is_file():
+        egrad = True
+    else:
+        egrad = False
+
+    data = {}
+
+    pattern_1PA = re.compile(
+        r""" 
+            (?P<stateno>\d+)\s
+            (?P<multiplicity_string>\S+)\s+
+            (?P<irrep>\S+)\s+
+            excitation.*?
+            Excitation\senergy:\s+?
+            (?P<excitation_energy>-?\d+.\d+).\s+?
+            Excitation\senergy\s/\seV.*?
+            Oscillator\sstrength:.*?
+            length\srepresentation:\s+
+            (?P<oscillator_strength>\d+\.\d+).*?
+            Dominant\scontributions:.*?
+            (?P<mo_contributions>(?:\d+\s+\S+\s+-?[\d.]+\s+\d+\s+\S+\s+-?[\d.]+\s+[\d*.]*\s+)+)
+            .*?Electric\stransition\sdipole\smoment\s\(length\srep\.\):\s+
+            x\s+(?P<mu_01_x>-?\d+\.\d+).*?
+            y\s+(?P<mu_01_y>-?\d+\.\d+).*?
+            z\s+(?P<mu_01_z>-?\d+\.\d+)\s+
+            Norm\s/\sdebye:\s+
+            (?P<mu_01_norm>-?\d+\.\d+)
+        """,
+        re.DOTALL | re.X
+    )
+    pattern_2PA = re.compile(
+        r""" 
+            Two-photon\sabsorption\samplitudes\sfor
+            \stransition\sto\sthe\s+
+            (?P<stateno>\d+)[a-z]{2}\s+?
+            .*?in\ssymmetry\s+?
+            (?P<irrep>\S+)\s+
+            Exc\.\senergy:\s+
+            (?P<excitation_energy>-?\d\.\d+)
+            \s+Hartree.*?
+            omega_1\s+
+            (?P<photon_1>[+-]?[\d.]+(?:[eE][+-]?\d+)?)
+            .*?omega_2\s+
+            (?P<photon_2>[+-]?[\d.]+(?:[eE][+-]?\d+)?)
+            .*?transition\sstrength\s\[a\.u\.\]:\s+
+            (?P<tpa_strength>-?[\d.]+)
+        """,
+        re.DOTALL | re.X
+    )
+        
+def parse_results(filepath):
+    """
+        General parser for escf, egrad, and ricc2 OPA and TPA calculations
+    """
+    filepath = Path(filepath)
+    with filepath.open() as logfile:
+        log = logfile.read()
+
+    if re.search('e s c f', log):
+        mode = 'escf'
+        return parse_escf(filepath)
+
+    elif re.search('r i c c 2', log):
+        mode = 'ricc2'
+        return parse_ricc2(filepath)
+
+    elif re.search('e g r a d', log):
+        mode = 'egrad'
+    else:
+        print(f'ERROR: Output file {log} unrecognized, does not seem to correspond to any of the accepted calculations (escf, ricc2, or egrad).')
+        return None
+
+
+
 
         
         

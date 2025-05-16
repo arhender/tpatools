@@ -8,7 +8,7 @@ class State():
     bohr_radius = 5.29E-9 # in cm
     light_speed = 2.9979E10 # in cm/s
 
-    def __init__(self, name, homo=None):
+    def __init__(self, name, homo=None, overallno = None):
         self.name = name
         State.instances.append(self)
 
@@ -16,6 +16,7 @@ class State():
         self.number = int(pieces[0])
         self.mult = pieces[1]
         self.irrep = pieces[2]
+        self.overallno = overallno
 
         if homo is not None:
             self.homo = int(homo)
