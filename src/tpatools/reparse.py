@@ -214,19 +214,40 @@ def parse_escf(
     with filepath.open() as logfile:
         log = logfile.read()
 
-    if search_for_egrad and filepath.parent / egradname.is_file():
-        egrad = True
+    if search_for_egrad and (filepath.parent / egradname).is_file():
+        egradavail = True
     else:
-        egrad = False
+        egradavail = False
 
     data = {}
+    au_debye_convfactor = 2.541746472
+
+    pattern_gs = re.compile(
+        r""" 
+            number\sof\soccupied\s
+            orbitals\s+:\s+
+            (?P<homo>\d+).*?
+            Ground\sstate.*?
+            Electric\sdipole\smoment:.*?
+            x.*?(?P<mu_00_x>-?\d+\.\d+)
+            \s+Norm.*?
+            y\s+[\d.-]+\s+[\d.-]+\s+
+            (?P<mu_00_y>-?\d+\.\d+).*?
+            (?P<mu_00_z>-?\d+\.\d+)
+            \s+Norm\s/\sdebye:\s+
+            (?P<mu_00_norm>-?\d+\.\d+)
+        """,
+        re.DOTALL | re.X
+    )
 
     pattern_1PA = re.compile(
         r""" 
+            (?P<escfname>
             (?P<stateno>\d+)\s
             (?P<multiplicity_string>\S+)\s+
             (?P<irrep>\S+)\s+
-            excitation.*?
+            excitation
+            ).*?
             Excitation\senergy:\s+?
             (?P<excitation_energy>-?\d+.\d+).\s+?
             Excitation\senergy\s/\seV.*?
@@ -263,6 +284,72 @@ def parse_escf(
         """,
         re.DOTALL | re.X
     )
+
+    gsdat = pattern_gs.search(log).groupdict()
+
+    data['mu_00'] = {}
+    data['mu_00']['norm'] = float(gsdat['mu_00_norm'])
+
+    # convert x,y,z components of mu_00 to debye
+    for vect in ['x', 'y', 'z']:
+        data['mu_00'][vect] = float(gsdat[f'mu_00_{vect}']) * au_debye_convfactor
+
+    data['homo'] = int(gsdat['homo'])
+    data['lumo'] = int(gsdat['homo']) + 1
+
+
+
+    states = []
+
+    for i, match in enumerate(pattern_1PA.finditer(log)):
+        statedat = match.groupdict()
+
+        states.append(
+            State(
+                statedat['escfname'],
+                homo = data['homo']
+            )
+        )
+        states[i].set_excitation_energy(
+            float(statedat['excitation_energy']),
+            degenerateTPA=False,
+        )
+        states[i].set_osc(
+            float(statedat['oscillator_strength'])
+        )
+
+        trandip_axes = []
+        for cart in ['x', 'y', 'z']:
+            trandip_axes.append(
+                float(statedat[f'mu_01_{cart}']) * au_debye_convfactor
+            )
+        states[i].set_transition_dipole(
+            float(statedat['mu_01_norm']),
+            *trandip_axes
+        )
+        ## Add TD-DFT transition amplitudes
+        for cont in [x.strip() for x in statedat['mo_contributions'].split('\n') if x.strip() != '']:
+            states[i].add_contribution(cont)
+
+
+    for i, match in enumerate(pattern_2PA.finditer(log)):
+        statedat = match.groupdict()
+
+        states[i].set_photon_energies([
+            float(statedat['photon_1']),
+            float(statedat['photon_2']),
+        ])
+        states[i].set_strength(
+            float(statedat['tpa_strength'])
+        )
+
+    if states_only:
+        return states
+    else:
+        data['states'] = states
+        return data
+
+
         
 def parse_results(filepath):
     """
