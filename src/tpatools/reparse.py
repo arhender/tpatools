@@ -203,6 +203,110 @@ def parse_ricc2(filepath):
     data['states'] = states
     return data
 
+def _convert_dipole_axes(
+        statedat,
+        stringstart,
+        stringend='',
+        as_dict = True,
+    ):
+    au_debye_convfactor = 2.541746472
+    if as_dict:
+        converted = {}
+        for cart in ['x', 'y', 'z']:
+            converted[cart] = float(statedat[f'{stringstart}{cart}{stringend}']) * au_debye_convfactor
+    else:
+        converted = []
+        for cart in ['x', 'y', 'z']:
+            converted.append(
+                float(statedat[f'{stringstart}{cart}{stringend}']) * au_debye_convfactor
+            )
+    return converted
+
+
+def parse_egrad(
+        filepath,
+    ):
+    filepath = Path(filepath)
+    with filepath.open() as logfile:
+        log = logfile.read()
+
+    pattern_egrad = re.compile(
+        r""" 
+        Ground\sstate.*?
+        Electric\sdipole\smoment:.*?
+        x.*?(?P<mu_00_x>-?\d+\.\d+)
+        \s+Norm.*?
+        y\s+[\d.-]+\s+[\d.-]+\s+
+        (?P<mu_00_y>-?\d+\.\d+).*?
+        (?P<mu_00_z>-?\d+\.\d+)
+        \s+Norm\s/\sdebye:\s+
+        (?P<mu_00_norm>-?\d+\.\d+).*?
+        Excited\sstate\sno\.\s+
+        (?P<exno>\d+)\s+chosen\s
+        for\soptimization.*?
+        electrostatic\smoments.*?
+        dipole\smoment.*?
+        x.[\s\d.-]+\s+(?P<mu_11_x>-?\d+\.\d+)\s+
+        y.[\s\d.-]+\s+(?P<mu_11_y>-?\d+\.\d+)\s+
+        z.[\s\d.-]+\s+(?P<mu_11_z>-?\d+\.\d+)\s+
+        \|\sdipole\smoment\s\|\s=.*?
+        (?P<mu_11_norm>-?\d+\.\d+)\sdebye
+        """,
+        re.DOTALL | re. X
+    )
+    scan_excitations = re.compile(
+        r""" 
+        (?P<stateno>\d+)\s
+        (?P<multiplicity>[a-z]+)\s
+        (?P<irrep>\S+)\s
+        excitation.*?
+        Electric\stransition\sdipole\s
+        moment\s\(length\srep\.\):\s+
+        x\s+(?P<mu_01_x>-?\d+\.\d+).*?
+        y\s+(?P<mu_01_y>-?\d+\.\d+)\s+
+        z\s+(?P<mu_01_z>-?\d+\.\d+)\s+
+        Norm\s/\sdebye:\s+
+        (?P<mu_01_norm>-?\d+\.\d+)
+        """,
+        re.DOTALL | re.X
+    )
+    egradata = pattern_egrad.search(log).groupdict()
+    excitation_list = [x.groupdict() for x in scan_excitations.finditer(log)]
+    
+    chosen_state = int(egradata['exno']) - 1
+
+    data = {
+        'chosen_state' : int(egradata['exno']),
+        'stateno' : int(excitation_list[chosen_state]['stateno']),
+        'irrep' : excitation_list[chosen_state]['irrep'],
+        'mu_00' : {
+            'norm' : float(egradata['mu_00_norm']),
+            **_convert_dipole_axes(
+                egradata,
+                'mu_00_',
+            ),
+        },
+        'mu_01' : {
+            'norm' : float(excitation_list[chosen_state]['mu_01_norm']),
+            **_convert_dipole_axes(
+                excitation_list[chosen_state],
+                'mu_01_',
+            ),
+        },
+        'mu_11' : {
+            'norm' : float(egradata['mu_11_norm']),
+            **_convert_dipole_axes(
+                egradata,
+                'mu_11_',
+            ),
+        },
+    }
+    return data
+
+    
+
+
+
         
 def parse_escf(
         filepath,
@@ -216,6 +320,8 @@ def parse_escf(
 
     if search_for_egrad and (filepath.parent / egradname).is_file():
         egradavail = True
+        egradpath = filepath.parent / egradname
+        print('egrad output found in escf directory! Will parse!')
     else:
         egradavail = False
 
@@ -343,6 +449,18 @@ def parse_escf(
             float(statedat['tpa_strength'])
         )
 
+    if egradavail:
+        egrad_data = parse_egrad(egradpath)
+        egrad_state = egrad_data['stateno']
+        egrad_irrep = egrad_data['irrep']
+        matching_states = [x for x in states if x.number == egrad_state and x.irrep == egrad_irrep]
+        if len(matching_states) > 1:
+            print('ERROR: Unexpected double state match for egrad, something is funky (I coded it wrong, clearly)')
+        match_index = states.index(matching_states[0])
+        states[match_index].set_permanent_dipole(
+            **egrad_data['mu_11']
+        )
+
     if states_only:
         return states
     else:
@@ -360,17 +478,16 @@ def parse_results(filepath):
         log = logfile.read()
 
     if re.search('e s c f', log):
-        mode = 'escf'
         return parse_escf(filepath)
 
-    elif re.search('r i c c 2', log):
-        mode = 'ricc2'
+    elif re.search('R I C C 2', log):
         return parse_ricc2(filepath)
-
+        
     elif re.search('e g r a d', log):
-        mode = 'egrad'
+        return parse_egrad(filepath)
+
     else:
-        print(f'ERROR: Output file {log} unrecognized, does not seem to correspond to any of the accepted calculations (escf, ricc2, or egrad).')
+        print(f'ERROR: Output file {filepath.name} unrecognized, does not seem to correspond to any of the accepted calculations (escf, ricc2, or egrad).')
         return None
 
 
