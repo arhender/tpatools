@@ -2,7 +2,7 @@ from tpatools.plot import tpaplot
 import numpy as np
 import argparse
 import sys
-from tpatools.parse import escf_table
+from tpatools.parse import tpa_table
 from pathlib import Path
 from tpatools.tools import filepath_searcher
 
@@ -12,7 +12,7 @@ def main():
         'filepath', 
         default=None,
         nargs="?",
-        help='Filepath containing a turbomole escf 2PA calculation output file. If no filepath is specified, will search for files named escf.out, bse.out, or tpa.out within the current directory',
+        help='Filepath containing a turbomole 2PA calculation output file. If no filepath is specified, will search for files named escf.out, bse.out, ricc2.out or tpa.out within the current directory',
     )
     parser.add_argument(
         '-b',
@@ -51,7 +51,7 @@ def main():
     args = parser.parse_args()
  
     filepath = filepath_searcher(args.filepath)
-    tab = escf_table(filepath)
+    tab = tpa_table(filepath)
 
     if args.xmin is None:
         xmin = np.min(tab['Excitation Energy /eV']) - 1

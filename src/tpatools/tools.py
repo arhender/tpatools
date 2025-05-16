@@ -17,7 +17,7 @@ def filepath_searcher(suppliedpath):
     If a path to a directory is given instead of a file, the given directory is searched for files matching the the names provided in the fallback list
 
     """
-    fallback_names = ['escf.out', 'bse.out', 'tpa.out', 'tddft.out', 'td-dft.out']
+    fallback_names = ['escf.out', 'bse.out', 'tpa.out', 'ricc2.out', 'tddft.out', 'td-dft.out']
 
     filepath = None
     if suppliedpath is None:
