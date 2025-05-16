@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from tpatools.state import State
+import itertools
 
 def _multno_to_text(nom):
     try:
@@ -66,11 +67,11 @@ def parse_ricc2(filepath):
             GROUND\sSTATE\sFIRST-ORDER\sPROPERTIES.*
             Analysis\sof\srelaxed\sproperties:.*
             dipole\smoment:.*
-            x\s+(?P<mu_00_x>-?\d+\.\d+)\s+
-            y\s+(?P<mu_00_y>-?\d+\.\d+)\s+
-            z\s+(?P<mu_00_z>-?\d+\.\d+)\s+
+            x\s+(?P<mu_00_x>-?\d+\.\d+(?:[eE][+-]?\d+)?)\s+
+            y\s+(?P<mu_00_y>-?\d+\.\d+(?:[eE][+-]?\d+)?)\s+
+            z\s+(?P<mu_00_z>-?\d+\.\d+(?:[eE][+-]?\d+)?)\s+
             \|\sdipole\smoment\s\|.*=\s+
-            (?P<mu_00_norm>-?\d+\.\d+)
+            (?P<mu_00_norm>-?\d+\.\d+(?:[eE][+-]?\d+)?)
             \s+debye
             .*Analysis\sof\sunrelaxed\sproperties.*
             ONE-PHOTON\sABSORPTION\sSTRENGTHS
@@ -85,10 +86,10 @@ def parse_ricc2(filepath):
             (?P<irrep>\S+)\s+
             (?P<multiplicity>\d).*?
             frequency\s+:\s+
-            (?P<excitation_energy>\d+\.\d+)
+            (?P<excitation_energy>\d+\.\d+(?:[eE][+-]?\d+)?)
             \s+a\.u.*?
             oscillator\sstrength\s\(length\sgauge\)
-            \s+:\s+(?P<oscillator_strength>\d+\.\d+)
+            \s+:\s+(?P<oscillator_strength>\d+\.\d+(?:[eE][+-]?\d+)?)
         """,
         re.DOTALL | re.X
     )
@@ -102,15 +103,15 @@ def parse_ricc2(filepath):
             MULTIPLICITY:\s+
             (?P<multiplicity>\d+).*?
             EXCI\.\sENERGY:\s+
-            (?P<excitation_energy>\d+\.\d+)
+            (?P<excitation_energy>\d+\.\d+(?:[eE][+-]?\d+)?)
             \sa\.u.*?
             1ST\sPHOTON:\s+
-            (?P<photon_1>\d+\.\d+)\sa\.u.*?
+            (?P<photon_1>\d+\.\d+(?:[eE][+-]?\d+)?)\sa\.u.*?
             2ND\sPHOTON:\s+
-            (?P<photon_2>\d+\.\d+)\sa\.u.*?
+            (?P<photon_2>\d+\.\d+(?:[eE][+-]?\d+)?)\sa\.u.*?
             ROTATIONALLY\sAVERAGED\sVALUES:.*?
             Linear:\s+
-            (?P<tpa_strength>-?\d+\.\d+)
+            (?P<tpa_strength>-?\d+\.\d+(?:[eE][+-]?\d+)?)
         """,
         re.DOTALL | re.X
     )
@@ -123,14 +124,14 @@ def parse_ricc2(filepath):
             (?P<irrep>\S+)\s+
             (?P<multiplicity>\d+).*?
             frequency\s+:\s+
-            (?P<excitation_energy>\d+\.\d+).*?
+            (?P<excitation_energy>\d+\.\d+(?:[eE][+-]?\d+)?).*?
             Analysis\sof\srelaxed\sproperties:.*?
             dipole\smoment:.*?
-            x\s+(?P<mu_11_x>-?\d+\.\d+)\s+
-            y\s+(?P<mu_11_y>-?\d+\.\d+)\s+
-            z\s+(?P<mu_11_z>-?\d+\.\d+)\s+
+            x\s+(?P<mu_11_x>-?\d+\.\d+(?:[eE][+-]?\d+)?)\s+
+            y\s+(?P<mu_11_y>-?\d+\.\d+(?:[eE][+-]?\d+)?)\s+
+            z\s+(?P<mu_11_z>-?\d+\.\d+(?:[eE][+-]?\d+)?)\s+
             \|\sdipole\smoment\s\|.*?=\s+
-            (?P<mu_11_norm>-?\d+\.\d+)
+            (?P<mu_11_norm>-?\d+\.\d+(?:[eE][+-]?\d+)?)
             \s+debye
             .*?Analysis\sof\sunrelaxed\sproperties
         """,
@@ -189,7 +190,6 @@ def parse_ricc2(filepath):
     for i, match in enumerate(pattern_exprop.finditer(log)):
         statedat = match.groupdict()
 
-        print(statedat)
         permdip_axes = []
         for cart in ['x', 'y', 'z']:
             permdip_axes.append(
@@ -234,21 +234,21 @@ def parse_egrad(
         r""" 
         Ground\sstate.*?
         Electric\sdipole\smoment:.*?
-        x.*?(?P<mu_00_x>-?\d+\.\d+)
+        x.*?(?P<mu_00_x>-?\d+\.\d+(?:[eE][+-]?\d+)?)
         \s+Norm.*?
         y\s+[\d.-]+\s+[\d.-]+\s+
-        (?P<mu_00_y>-?\d+\.\d+).*?
-        (?P<mu_00_z>-?\d+\.\d+)
+        (?P<mu_00_y>-?\d+\.\d+(?:[eE][+-]?\d+)?).*?
+        (?P<mu_00_z>-?\d+\.\d+(?:[eE][+-]?\d+)?)
         \s+Norm\s/\sdebye:\s+
-        (?P<mu_00_norm>-?\d+\.\d+).*?
+        (?P<mu_00_norm>-?\d+\.\d+(?:[eE][+-]?\d+)?).*?
         Excited\sstate\sno\.\s+
         (?P<exno>\d+)\s+chosen\s
         for\soptimization.*?
         electrostatic\smoments.*?
         dipole\smoment.*?
-        x.[\s\d.-]+\s+(?P<mu_11_x>-?\d+\.\d+)\s+
-        y.[\s\d.-]+\s+(?P<mu_11_y>-?\d+\.\d+)\s+
-        z.[\s\d.-]+\s+(?P<mu_11_z>-?\d+\.\d+)\s+
+        x.[\s\d.-]+\s+(?P<mu_11_x>-?\d+\.\d+(?:[eE][+-]?\d+)?)\s+
+        y.[\s\d.-]+\s+(?P<mu_11_y>-?\d+\.\d+(?:[eE][+-]?\d+)?)\s+
+        z.[\s\d.-]+\s+(?P<mu_11_z>-?\d+\.\d+(?:[eE][+-]?\d+)?)\s+
         \|\sdipole\smoment\s\|\s=.*?
         (?P<mu_11_norm>-?\d+\.\d+)\sdebye
         """,
@@ -262,11 +262,11 @@ def parse_egrad(
         excitation.*?
         Electric\stransition\sdipole\s
         moment\s\(length\srep\.\):\s+
-        x\s+(?P<mu_01_x>-?\d+\.\d+).*?
-        y\s+(?P<mu_01_y>-?\d+\.\d+)\s+
-        z\s+(?P<mu_01_z>-?\d+\.\d+)\s+
+        x\s+(?P<mu_01_x>-?\d+\.\d+(?:[eE][+-]?\d+)?).*?
+        y\s+(?P<mu_01_y>-?\d+\.\d+(?:[eE][+-]?\d+)?)\s+
+        z\s+(?P<mu_01_z>-?\d+\.\d+(?:[eE][+-]?\d+)?)\s+
         Norm\s/\sdebye:\s+
-        (?P<mu_01_norm>-?\d+\.\d+)
+        (?P<mu_01_norm>-?\d+\.\d+(?:[eE][+-]?\d+)?)
         """,
         re.DOTALL | re.X
     )
@@ -313,6 +313,7 @@ def parse_escf(
         search_for_egrad = True,
         states_only = False, # for backwards compatibility to my old version, which just returned a list of State objects
         egradname = 'egrad.out',
+        suppress_egrad_notification = False,
     ):
     filepath = Path(filepath)
     with filepath.open() as logfile:
@@ -321,7 +322,8 @@ def parse_escf(
     if search_for_egrad and (filepath.parent / egradname).is_file():
         egradavail = True
         egradpath = filepath.parent / egradname
-        print('egrad output found in escf directory! Will parse!')
+        if suppress_egrad_notification == False:
+            print('egrad output found in escf directory! Will parse!')
     else:
         egradavail = False
 
@@ -335,13 +337,13 @@ def parse_escf(
             (?P<homo>\d+).*?
             Ground\sstate.*?
             Electric\sdipole\smoment:.*?
-            x.*?(?P<mu_00_x>-?\d+\.\d+)
+            x.*?(?P<mu_00_x>-?\d+\.\d+(?:[eE][+-]?\d+)?)
             \s+Norm.*?
             y\s+[\d.-]+\s+[\d.-]+\s+
-            (?P<mu_00_y>-?\d+\.\d+).*?
-            (?P<mu_00_z>-?\d+\.\d+)
+            (?P<mu_00_y>-?\d+\.\d+(?:[eE][+-]?\d+)?).*?
+            (?P<mu_00_z>-?\d+\.\d+(?:[eE][+-]?\d+)?)
             \s+Norm\s/\sdebye:\s+
-            (?P<mu_00_norm>-?\d+\.\d+)
+            (?P<mu_00_norm>-?\d+\.\d+(?:[eE][+-]?\d+)?)
         """,
         re.DOTALL | re.X
     )
@@ -355,19 +357,19 @@ def parse_escf(
             excitation
             ).*?
             Excitation\senergy:\s+?
-            (?P<excitation_energy>-?\d+.\d+).\s+?
+            (?P<excitation_energy>-?\d+.\d+(?:[eE][+-]?\d+)?).\s+?
             Excitation\senergy\s/\seV.*?
             Oscillator\sstrength:.*?
             length\srepresentation:\s+
-            (?P<oscillator_strength>\d+\.\d+).*?
+            (?P<oscillator_strength>\d+\.\d+(?:[eE][+-]?\d+)?).*?
             Dominant\scontributions:.*?
             (?P<mo_contributions>(?:\d+\s+\S+\s+-?[\d.]+\s+\d+\s+\S+\s+-?[\d.]+\s+[\d*.]*\s+)+)
             .*?Electric\stransition\sdipole\smoment\s\(length\srep\.\):\s+
-            x\s+(?P<mu_01_x>-?\d+\.\d+).*?
-            y\s+(?P<mu_01_y>-?\d+\.\d+).*?
-            z\s+(?P<mu_01_z>-?\d+\.\d+)\s+
+            x\s+(?P<mu_01_x>-?\d+\.\d+(?:[eE][+-]?\d+)?).*?
+            y\s+(?P<mu_01_y>-?\d+\.\d+(?:[eE][+-]?\d+)?).*?
+            z\s+(?P<mu_01_z>-?\d+\.\d+(?:[eE][+-]?\d+)?)\s+
             Norm\s/\sdebye:\s+
-            (?P<mu_01_norm>-?\d+\.\d+)
+            (?P<mu_01_norm>-?\d+\.\d+(?:[eE][+-]?\d+)?)
         """,
         re.DOTALL | re.X
     )
@@ -379,14 +381,14 @@ def parse_escf(
             .*?in\ssymmetry\s+?
             (?P<irrep>\S+)\s+
             Exc\.\senergy:\s+
-            (?P<excitation_energy>-?\d\.\d+)
+            (?P<excitation_energy>-?\d\.\d+(?:[eE][+-]?\d+)?)
             \s+Hartree.*?
             omega_1\s+
             (?P<photon_1>[+-]?[\d.]+(?:[eE][+-]?\d+)?)
             .*?omega_2\s+
             (?P<photon_2>[+-]?[\d.]+(?:[eE][+-]?\d+)?)
             .*?transition\sstrength\s\[a\.u\.\]:\s+
-            (?P<tpa_strength>-?[\d.]+)
+        (?P<tpa_strength>-?\d+\.\d+(?:[eE][-+]?\d+)?)
         """,
         re.DOTALL | re.X
     )
@@ -469,7 +471,12 @@ def parse_escf(
 
 
         
-def parse_results(filepath):
+def parse_results(
+        filepath,
+        egradoutname='egrad.out', ## for escf parsing, this allows nonstandard checks for the egrad name
+        search_for_egrad = True, # passed to escf parser is escf file supplied
+        suppress_egrad_notification = False,
+    ):
     """
         General parser for escf, egrad, and ricc2 OPA and TPA calculations
     """
@@ -478,7 +485,12 @@ def parse_results(filepath):
         log = logfile.read()
 
     if re.search('e s c f', log):
-        return parse_escf(filepath)
+        return parse_escf(
+            filepath, 
+            egradname=egradoutname, 
+            search_for_egrad=search_for_egrad,
+            suppress_egrad_notification=suppress_egrad_notification,
+        )
 
     elif re.search('R I C C 2', log):
         return parse_ricc2(filepath)
@@ -543,13 +555,13 @@ def parse_exspec(filepath):
 
 def gather_state_data(
         basedir, 
-        outfilename = 'escf.out', 
+        outfilename = None, 
         egradoutname = 'egrad.out',
         state=1, 
         egradavail=False,
         orderedkeys=None,
         fulldirnames = False,
-        suppress_egrad_warning = False,
+        suppress_egrad_notification = False,
         tabulate = False,
         latexnames = False,
         compactnames = False,
@@ -560,7 +572,14 @@ def gather_state_data(
     """
 
     basedir = Path(basedir)
-    filelist = list(basedir.rglob(outfilename))
+    if outfilename is None:
+        # Search for any files in the fallback list
+        fallbacknames = ['escf.out', 'bse.out', 'tpa.out', 'td-dft.out', 'ricc2.out']
+        filelist = []
+        for name in fallbacknames:
+            filelist.extend(basedir.rglob(name))
+    else:
+        filelist = list(basedir.rglob(outfilename))
 
     if orderedkeys is not None:
         filelist = sorted(
@@ -578,13 +597,15 @@ def gather_state_data(
         if verbose_output:
             print(f'Analyzing log file {logfile.resolve()}')
         try:
-            parsed_data = parse_results(logfile)
+            parsed_data = parse_results(logfile, egradoutname=egradoutname, suppress_egrad_notification=suppress_egrad_notification)
             statedata = parsed_data['states'][state - 1]
         except IndexError:
             print(f'Excited state {state} not available for file {logfile.resolve()}')
+            print(parsed_data)
             continue
         except:
             print(f'Error parsing output file {logfile.resolve()}, check for issues')
+            continue
 
 
         #try:

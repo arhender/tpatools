@@ -16,7 +16,7 @@ def main():
     parser.add_argument(
         '-o',
         '--escfname',
-        default='escf.out',
+        default=None,
         help='name of the escf output file(s)',
     )
     parser.add_argument(
@@ -97,7 +97,7 @@ def main():
         state=args.stateno,
         egradavail=False,
         fulldirnames = args.fullnames,
-        suppress_egrad_warning = True,
+        suppress_egrad_notification = True,
         tabulate = True,
         latexnames=args.latexnames,
         compactnames=args.compactnames,
