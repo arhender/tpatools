@@ -6,6 +6,13 @@ from pathlib import Path
 from tpatools.state import State
 import itertools
 
+def _is_int(value):
+    try:
+        x = int(value)
+        return True
+    except:
+        return False
+
 def _multno_to_text(nom):
     try:
         nom = int(nom)
@@ -529,7 +536,7 @@ def parse_exspec(filepath):
     osclen = []
     with filepath.open() as log:
         for line in log.readlines():
-            if is_int(line.split()[0]):
+            if _is_int(line.split()[0]):
                 excno.append(int(line.split()[0]))
                 hartree.append(float(line.split()[2]))
                 eV.append(float(line.split()[3]))
@@ -566,6 +573,8 @@ def gather_state_data(
         latexnames = False,
         compactnames = False,
         verbose_output = False,
+        osc = False,
+        sortfunc = None,
     ):
     """
         Recursively gather excitation energies, transition dipoles, cross sections, and dipole moments for all output files in a given directory and compile them into a dictionary, with keys provided by the directory names
@@ -585,6 +594,11 @@ def gather_state_data(
         filelist = sorted(
             filelist,
             key=lambda x: orderedkeys.index(x.parent.name)
+        )
+    elif sortfunc is not None:
+        filelist = sorted(
+            filelist,
+            key=sortfunc,
         )
     elif fulldirnames:
         filelist = sorted(filelist, key=lambda x: str(x.relative_to(basedir).parent))
@@ -633,34 +647,68 @@ def gather_state_data(
             key = logfile.parent.name
 
         try:
-            if latexnames:
-                collectdata[key] = {
-                    '$\\Delta E$ /eV' : statedata.excitation_energy * 27.2114,
-                    '$\delta^{\\textrm{2PA}}$ /a.u.' : statedata.transition_strength,
-                    '$\\sigma^{\\textrm{2PA}}$ /GM' : statedata.get_cross_section(),
-                    '$|\\mu_{00}|$ /D' : mu_00,
-                    '$|\\mu_{01}|$ /D' : mu_01,
-                    '$|\\mu_{11}|$ /D' : mu_11,
-                }
-            elif compactnames:
-                collectdata[key] = {
-                    'ex. E' : statedata.excitation_energy * 27.2114,
-                    'delta /a.u.' : statedata.transition_strength,
-                    'sigma /GM' : statedata.get_cross_section(),
-                    'mu_00' : mu_00,
-                    'mu_01' : mu_01,
-                    'mu_11' : mu_11,
-                }
+            if osc:
+                if latexnames:
+                    collectdata[key] = {
+                        '$\\Delta E$ /eV' : statedata.excitation_energy * 27.2114,
+                        '$\delta^{\\textrm{2PA}}$ /a.u.' : statedata.transition_strength,
+                        '$\\sigma^{\\textrm{2PA}}$ /GM' : statedata.get_cross_section(),
+                        '$|\\mu_{00}|$ /D' : mu_00,
+                        '$|\\mu_{01}|$ /D' : mu_01,
+                        '$|\\mu_{11}|$ /D' : mu_11,
+                        '$f$' : statedata.oscillator_strength,
+                    }
+                elif compactnames:
+                    collectdata[key] = {
+                        'ex. E' : statedata.excitation_energy * 27.2114,
+                        'delta /a.u.' : statedata.transition_strength,
+                        'sigma /GM' : statedata.get_cross_section(),
+                        'mu_00' : mu_00,
+                        'mu_01' : mu_01,
+                        'mu_11' : mu_11,
+                        'osc' : statedata.oscillator_strength,
+                    }
 
+                else:
+                    collectdata[key] = {
+                        'Excitation Energy /eV' : statedata.excitation_energy * 27.2114,
+                        '2PA Strength /a.u.' : statedata.transition_strength,
+                        'Cross Section /GM' : statedata.get_cross_section(),
+                        'Ground State Dipole Moment /D' : mu_00,
+                        'Transition Dipole Moment /D' : mu_01,
+                        'Excited State Dipole Moment /D' : mu_11,
+                        'Oscillator Strength' : statedata.oscillator_strength,
+                    }
             else:
-                collectdata[key] = {
-                    'Excitation Energy /eV' : statedata.excitation_energy * 27.2114,
-                    '2PA Strength /a.u.' : statedata.transition_strength,
-                    'Cross Section /GM' : statedata.get_cross_section(),
-                    'Ground State Dipole Moment /D' : mu_00,
-                    'Transition Dipole Moment /D' : mu_01,
-                    'Excited State Dipole Moment /D' : mu_11,
-                }
+                if latexnames:
+                    collectdata[key] = {
+                        '$\\Delta E$ /eV' : statedata.excitation_energy * 27.2114,
+                        '$\delta^{\\textrm{2PA}}$ /a.u.' : statedata.transition_strength,
+                        '$\\sigma^{\\textrm{2PA}}$ /GM' : statedata.get_cross_section(),
+                        '$|\\mu_{00}|$ /D' : mu_00,
+                        '$|\\mu_{01}|$ /D' : mu_01,
+                        '$|\\mu_{11}|$ /D' : mu_11,
+                    }
+                elif compactnames:
+                    collectdata[key] = {
+                        'ex. E' : statedata.excitation_energy * 27.2114,
+                        'delta /a.u.' : statedata.transition_strength,
+                        'sigma /GM' : statedata.get_cross_section(),
+                        'mu_00' : mu_00,
+                        'mu_01' : mu_01,
+                        'mu_11' : mu_11,
+                    }
+
+                else:
+                    collectdata[key] = {
+                        'Excitation Energy /eV' : statedata.excitation_energy * 27.2114,
+                        '2PA Strength /a.u.' : statedata.transition_strength,
+                        'Cross Section /GM' : statedata.get_cross_section(),
+                        'Ground State Dipole Moment /D' : mu_00,
+                        'Transition Dipole Moment /D' : mu_01,
+                        'Excited State Dipole Moment /D' : mu_11,
+                    }
+
         except:
             print(f'Errors in extracting data in subdir {logfile.parent}, skipping for now')
             continue
