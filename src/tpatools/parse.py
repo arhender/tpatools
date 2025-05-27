@@ -509,11 +509,30 @@ def parse_results(
         print(f'ERROR: Output file {filepath.name} unrecognized, does not seem to correspond to any of the accepted calculations (escf, ricc2, or egrad).')
         return None
 
+def _get_state_label(state, irrep=False, mult=False):
+    if irrep and mult:
+        mult_letter = state.mult[0].capitalize()
+        state_id = f'{mult_letter}{state.number}{state.irrep}'
+    elif irrep:
+        state_id = f'{state.number}{state.irrep}'
+    elif mult:
+        mult_letter = state.mult[0].capitalize()
+        state_id = f'{mult_letter}{state.number}'
+    else:
+        state_id = state.number
 
-def tpa_table(filepath):
+    return state_id
+
+
+def tpa_table(
+        filepath,
+        irrep = True,
+        mult = False,
+    ):
     states = parse_results(filepath)['states']
+
     values = {
-        'State' : [x.number for x in states],
+        'State' : [_get_state_label(x, irrep=irrep, mult=mult) for x in states],
         'Excitation Energy /eV' : [x.excitation_energy * 27.2114 for x in states],
         '2PA Strength /a.u.' : [x.transition_strength for x in states],
         'Cross Section /GM' : [x.get_cross_section() for x in states],
