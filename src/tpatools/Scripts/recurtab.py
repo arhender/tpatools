@@ -84,7 +84,7 @@ def main():
     )
     parser.add_argument(
             '--removeosc',
-            action='store_False',
+            action='store_false',
             help='use this flag to disable printing of 1PA oscillator strengths',
     )
     args = parser.parse_args()
