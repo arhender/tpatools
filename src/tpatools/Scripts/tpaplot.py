@@ -48,10 +48,40 @@ def main():
         action='store_true',
         help='Whether to convert units from eV to nm (false by default)',
     )
+
+    parser.add_argument(
+        '-i',
+        '--noirrep',
+        action='store_false',
+        help="whether or not to include the irreducible representation in state labels (enabled by default)",
+    )
+    parser.add_argument(
+        '-m',
+        '--mult',
+        action='store_true',
+        help="whether or not to include the multiplicity in labels (ex S1) - disabled by default",
+    )
+    parser.add_argument(
+        '-l',
+        '--labels',
+        action = 'store_true',
+        help="include labelled state names + sticks"
+    )
+    parser.add_argument(
+        '-c',
+        '--labelcutoff',
+        type=float,
+        default=None,
+        help = 'only display labels with cross section over a specific value',
+    )
     args = parser.parse_args()
  
     filepath = filepath_searcher(args.filepath)
-    tab = tpa_table(filepath)
+    tab = tpa_table(
+        filepath,
+        irrep = args.noirrep,
+        mult = args.mult,
+    )
 
     if args.xmin is None:
         xmin = np.min(tab['Excitation Energy /eV']) - 1
@@ -70,5 +100,7 @@ def main():
         xmax= xmax,
         nm=args.nm,
         save=args.savefile,
+        labels = args.labels,
+        labelcutoff = args.labelcutoff,
     )
 

@@ -90,6 +90,8 @@ def tpaplot(
         figure_size=(6,6),
         extraplotparams={},
         default_buffer_x_edge = 1,
+        labels = False,
+        labelcutoff = None,
     ):
     """
     Function to plot a simulated 2PA spectrum, given a table containing excitation energies and cross sections, as output by the tpaplot.parse.escf_table function
@@ -135,6 +137,29 @@ def tpaplot(
             color=colour,
             **extraplotparams,
         )
+
+    if labels:
+        statenames = tab['State'].values
+        for i, ex in enumerate(ex_energy):
+            ax.plot(
+                [ex, ex],
+                [0, cross_section[i]],
+                color='black',
+                linestyle='dashed',
+            )
+            if labelcutoff is not None:
+                if cross_section[i] > labelcutoff:
+                    ax.annotate(
+                        statenames[i],
+                        xy = (ex, cross_section[i] + 0.1),
+                        ha = 'center',
+                    )
+            else:
+                ax.annotate(
+                    statenames[i],
+                    xy = (ex, cross_section[i] + 0.1),
+                    ha = 'center',
+                )
 
     ax.set_ylabel('$\\sigma^{2PA}$ /GM')
     if nm:
