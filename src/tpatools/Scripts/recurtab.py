@@ -82,6 +82,11 @@ def main():
         default=None,
         help='An output filename to write the table to an excel file'
     )
+    parser.add_argument(
+            '--removeosc',
+            action='store_False',
+            help='use this flag to disable printing of 1PA oscillator strengths',
+    )
     args = parser.parse_args()
 
     if args.sortlist is not None:
@@ -97,6 +102,7 @@ def main():
         state=args.stateno,
         egradavail=False,
         fulldirnames = args.fullnames,
+        osc = args.removeosc,
         suppress_egrad_notification = True,
         tabulate = True,
         latexnames=args.latexnames,
