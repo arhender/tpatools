@@ -148,14 +148,17 @@ def parse_ricc2(filepath):
     data = {
         'mu_00' : {},
     }
-    mu_00dat = pattern_gs.search(log).groupdict()
-    # Norm is parsed in debye: add to data
-    data['mu_00']['norm'] = float(mu_00dat['mu_00_norm'])
-
-    # convert x,y,z components of mu_00 to debye
-    for vect in ['x', 'y', 'z']:
-        data['mu_00'][vect] = float(mu_00dat[f'mu_00_{vect}']) * au_debye_convfactor
-
+    try:
+        mu_00dat = pattern_gs.search(log).groupdict()
+        # Norm is parsed in debye: add to data
+        data['mu_00']['norm'] = float(mu_00dat['mu_00_norm'])
+    
+        # convert x,y,z components of mu_00 to debye
+        for vect in ['x', 'y', 'z']:
+            data['mu_00'][vect] = float(mu_00dat[f'mu_00_{vect}']) * au_debye_convfactor
+    except AttributeError:
+        print('ground state dipole not parsed')
+    
     states = []
     # following logic needed in case of for ex singlets and triplets in same calc
 
