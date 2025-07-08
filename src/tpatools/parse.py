@@ -532,7 +532,7 @@ def tpa_table(
         irrep = True,
         mult = False,
     ):
-    states = parse_results(filepath)['states']
+    states = parse_results(filepath, search_for_egrad=False)['states']
 
     values = {
         'State' : [_get_state_label(x, irrep=irrep, mult=mult) for x in states],
