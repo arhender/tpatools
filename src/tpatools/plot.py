@@ -198,6 +198,7 @@ def tpaplot_multi(
         extraplotparams={},
         label_offset_y=20,
         label_offset_x=0,
+        label_y_increment=0,
     ):
 
     fig, ax = plt.subplots(figsize=figure_size)
@@ -260,7 +261,7 @@ def tpaplot_multi(
             if show_labels:
                 ax.annotate(
                     entryno,
-                    (np.min(x) + label_offset_x, y[0] + label_offset_y),
+                    (np.min(x) + label_offset_x, y[0] + label_offset_y + label_y_increment * i),
                     color=current_colour
                 )
 
