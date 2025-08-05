@@ -596,6 +596,7 @@ def gather_state_data(
         compactnames = False,
         verbose_output = False,
         osc = False,
+        search_for_egrad = True,
         sortfunc = None,
     ):
     """
@@ -633,7 +634,7 @@ def gather_state_data(
         if verbose_output:
             print(f'Analyzing log file {logfile.resolve()}')
         try:
-            parsed_data = parse_results(logfile, egradoutname=egradoutname, suppress_egrad_notification=suppress_egrad_notification)
+            parsed_data = parse_results(logfile, egradoutname=egradoutname, suppress_egrad_notification=suppress_egrad_notification, search_for_egrad=search_for_egrad)
             statedata = parsed_data['states'][state - 1]
         except IndexError:
             print(f'Excited state {state} not available for file {logfile.resolve()}')

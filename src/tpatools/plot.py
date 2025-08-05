@@ -118,9 +118,10 @@ def tpaplot(
         rng=rng,
         width=width,
     )
+    x = x / 2
 
     if nm:
-        x = eV_to_nm(x) * 2
+        x = eV_to_nm(x)
 
 
     if colour is not None:
@@ -137,10 +138,13 @@ def tpaplot(
             color=colour,
             **extraplotparams,
         )
+    transform_excitations = [x / 2 for x in ex_energy]
+    if nm:
+        transform_excitations = [eV_to_nm(x) for x in transform_excitations]
 
     if labels:
         statenames = tab['State'].values
-        for i, ex in enumerate(ex_energy):
+        for i, ex in enumerate(transform_excitations):
             ax.plot(
                 [ex, ex],
                 [0, cross_section[i]],
