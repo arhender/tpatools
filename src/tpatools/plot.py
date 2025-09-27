@@ -110,7 +110,7 @@ def tpaplot(
 
     rng = (xmin, xmax)
 
-
+    labels_covered = [ex >= xmin and ex <= xmax for ex in ex_energy]
 
     x, y = tpabroaden(
         ex_energy, 
@@ -145,25 +145,26 @@ def tpaplot(
     if labels:
         statenames = tab['State'].values
         for i, ex in enumerate(transform_excitations):
-            ax.plot(
-                [ex, ex],
-                [0, cross_section[i]],
-                color='black',
-                linestyle='dashed',
-            )
-            if labelcutoff is not None:
-                if cross_section[i] > labelcutoff:
+            if labels_covered[i]:
+                ax.plot(
+                    [ex, ex],
+                    [0, cross_section[i]],
+                    color='black',
+                    linestyle='dashed',
+                )
+                if labelcutoff is not None:
+                    if cross_section[i] > labelcutoff:
+                        ax.annotate(
+                            statenames[i],
+                            xy = (ex, cross_section[i] + 0.1),
+                            ha = 'center',
+                        )
+                else:
                     ax.annotate(
                         statenames[i],
                         xy = (ex, cross_section[i] + 0.1),
                         ha = 'center',
                     )
-            else:
-                ax.annotate(
-                    statenames[i],
-                    xy = (ex, cross_section[i] + 0.1),
-                    ha = 'center',
-                )
 
     ax.set_ylabel('$\\sigma^{2PA}$ /GM')
     if nm:
