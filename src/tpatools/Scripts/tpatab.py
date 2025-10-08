@@ -20,6 +20,12 @@ def main():
         help='Print excitation energies and transition strengths in a.u.',
     )
     parser.add_argument(
+        '-c', 
+        '--compact',
+        action='store_true',
+        help='Print output names in a more compact format',
+    )
+    parser.add_argument(
         '-t',
         '--tex',
         action='store_true',
@@ -48,7 +54,7 @@ def main():
     args = parser.parse_args()
 
     filepath = filepath_searcher(args.filepath)
-    df = tpa_table(filepath, irrep=args.noirrep, mult=args.mult)
+    df = tpa_table(filepath, irrep=args.noirrep, mult=args.mult, compact=args.compact)
     if args.verbose == False:
         df.drop(
             columns=['Excitation Energy /eV', '2PA Strength /a.u.'],
