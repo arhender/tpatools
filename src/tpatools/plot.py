@@ -60,11 +60,22 @@ def lorentzian(wavelength, intensity, width=25, rng=None, yscale=None):
 
     return x, y
 
-def tpabroaden(energy, cross_section, width=0.1, rng=(3,5)):
+def tpabroaden(energy, cross_section, width=0.1, rng=(3,5), lineshape='lorentzian'):
     """
         Line-broadening for simulation of a 2PA spectrum
         Provide lifetime broadening parameter in eV (default 0.1)
     """
+    if lineshape == 'gaussian':
+        x,y = tpa_gaussian_broaden(energy, cross_section, width, rng)
+    elif lineshape == 'lorentzian':
+        x, y = tpa_lorentzian_broaden(energy, cross_section, width, rng)
+    else:
+        print(f'Invalid lineshape {lineshape} specified')
+        return 0
+
+    return x, y
+
+def tpa_lorentzian_broaden(energy, cross_section, width, rng):
     x = np.linspace(rng[0],rng[1],5000)
     yvals = []
     cross_removelineshape = np.array(cross_section) * (np.pi * width)
@@ -77,6 +88,26 @@ def tpabroaden(energy, cross_section, width=0.1, rng=(3,5)):
         )
     y = sum(yvals)
     return x, y
+
+def tpa_gaussian_broaden(energy, cross_section, width, rng):
+    x = np.linspace(rng[0], rng[1], 5000)
+    yvals = []
+    cross_removelineshape = cross_section * width * np.sqrt(np.pi) / (np.sqrt(np.log(2)))
+
+    for i, en in enumerate(energy):
+        yvals.append(
+            cross_removelineshape[i] * (
+                (np.sqrt(np.log(2)) / (width * np.sqrt(np.pi))) *
+                np.exp(- np.log(2) * (
+                    (x - en) / width
+                )**2 )
+            )
+        )
+
+    y = sum(yvals)
+    return x,y
+
+    
 
 
 def tpaplot(
@@ -92,6 +123,7 @@ def tpaplot(
         default_buffer_x_edge = 1,
         labels = False,
         labelcutoff = None,
+        lineshape = 'lorentzian',
     ):
     """
     Function to plot a simulated 2PA spectrum, given a table containing excitation energies and cross sections, as output by the tpaplot.parse.escf_table function
@@ -117,6 +149,7 @@ def tpaplot(
         cross_section,
         rng=rng,
         width=width,
+        lineshape = lineshape,
     )
     x = x / 2
 
@@ -204,6 +237,7 @@ def tpaplot_multi(
         label_offset_y=20,
         label_offset_x=0,
         label_y_increment=0,
+        lineshape = 'lorentzian',
     ):
 
     fig, ax = plt.subplots(figsize=figure_size)
@@ -231,6 +265,7 @@ def tpaplot_multi(
                 cross_section,
                 rng=rng,
                 width=width,
+                lineshape = lineshape,
             )
             #print(i - fromentry + 1)
             y = y + y_offset * (i - fromentry + 1)
