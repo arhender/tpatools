@@ -126,15 +126,24 @@ class State():
         return 0
 
 
-    def get_cross_section(self):
+    def get_cross_section(self, lineshape="lorentzian", linewidth=0.1, N=4):
         cross_section = (
-            4 * (np.pi**2) * (State.bohr_radius**5) * State.fine_structure 
+            N * (np.pi**2) * (State.bohr_radius**5) * State.fine_structure 
             * self.photon_energies[0] * self.photon_energies[1] 
             * self.transition_strength
-            / (State.light_speed * 0.1 / 27.2)
+            / (State.light_speed * linewidth / 27.2)
         )
         cross_section = cross_section * 10**50
-        return cross_section
+
+        if lineshape == 'lorentzian':
+            return cross_section 
+        elif lineshape == 'gaussian':
+            cross_section = cross_section * (np.sqrt(np.pi * np.log(2)))
+            return cross_section
+        
+        print(f'Invalid lineshape type {lineshape} specified, please try again')
+        return 0
+
 
     def as_dict(self):
         if self.permanent_dipole != {}:

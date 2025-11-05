@@ -532,6 +532,9 @@ def tpa_table(
         irrep = True,
         mult = False,
         compact = False, # Print more compact names
+        N = 4,
+        linewidth = 0.1,
+        lineshape = 'lorentzian',
     ):
     states = parse_results(filepath, search_for_egrad=False)['states']
 
@@ -540,7 +543,7 @@ def tpa_table(
             'State' : [_get_state_label(x, irrep=irrep, mult=mult) for x in states],
             'delta E /eV' : [x.excitation_energy * 27.2114 for x in states],
             'delta_2PA /au' : [x.transition_strength for x in states],
-            'sigma_2PA /GM' : [x.get_cross_section() for x in states],
+            'sigma_2PA /GM' : [x.get_cross_section(N = N, linewidth=linewidth, lineshape=lineshape) for x in states],
             'f' : [x.oscillator_strength for x in states],
             'mu_01 /D' : [x.transition_dipole['norm'] for x in states],
         }
@@ -550,7 +553,7 @@ def tpa_table(
             'State' : [_get_state_label(x, irrep=irrep, mult=mult) for x in states],
             'Excitation Energy /eV' : [x.excitation_energy * 27.2114 for x in states],
             '2PA Strength /a.u.' : [x.transition_strength for x in states],
-            'Cross Section /GM' : [x.get_cross_section() for x in states],
+            'Cross Section /GM' : [x.get_cross_section(N = N, linewidth=linewidth, lineshape=lineshape) for x in states],
             'Oscillator Strength' : [x.oscillator_strength for x in states],
             'Transition Dipole /D' : [x.transition_dipole['norm'] for x in states],
         }
@@ -652,7 +655,7 @@ def gather_state_data(
             statedata = parsed_data['states'][state - 1]
         except IndexError:
             print(f'Excited state {state} not available for file {logfile.resolve()}')
-            print(parsed_data)
+            #print(parsed_data)
             continue
         except:
             print(f'Error parsing output file {logfile.resolve()}, check for issues')
