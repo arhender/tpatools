@@ -87,6 +87,12 @@ def main():
             action='store_false',
             help='use this flag to disable printing of 1PA oscillator strengths',
     )
+    parser.add_argument(
+            '-g',
+            '--noegrad',
+            action='store_false',
+            help='disable searching for egrad output',
+    )
     args = parser.parse_args()
 
     if args.sortlist is not None:
@@ -108,6 +114,7 @@ def main():
         latexnames=args.latexnames,
         compactnames=args.compactnames,
         orderedkeys=orderedkeys,
+        search_for_egrad=args.noegrad,
     )
 
     if args.writefile is not None:
