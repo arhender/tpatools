@@ -238,6 +238,7 @@ def tpaplot_multi(
         label_offset_x=0,
         label_y_increment=0,
         lineshape = 'lorentzian',
+        show_x = True,
     ):
 
     fig, ax = plt.subplots(figsize=figure_size)
@@ -314,6 +315,8 @@ def tpaplot_multi(
     
     if show_y == False:
         ax.set_yticks([])
+    if show_x == False:
+        ax.set_xticks([])
     #ax.set_ylim(0,10)
     fig.tight_layout()
     if showlegend:
