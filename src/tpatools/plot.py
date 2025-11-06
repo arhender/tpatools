@@ -83,7 +83,7 @@ def tpa_lorentzian_broaden(energy, cross_section, width, rng):
     for i, en in enumerate(energy):
         yvals.append(
             cross_removelineshape[i] * width / (
-                np.pi * (x - en)**2 + np.pi*width**2
+                np.pi * (2 * x - en)**2 + np.pi*width**2
             )
         )
     y = sum(yvals)
@@ -99,7 +99,7 @@ def tpa_gaussian_broaden(energy, cross_section, width, rng):
             cross_removelineshape[i] * (
                 (np.sqrt(np.log(2)) / (width * np.sqrt(np.pi))) *
                 np.exp(- np.log(2) * (
-                    (x - en) / width
+                    (2 * x - en) / width
                 )**2 )
             )
         )
@@ -151,7 +151,6 @@ def tpaplot(
         width=width,
         lineshape = lineshape,
     )
-    x = x / 2
 
     if nm:
         x = eV_to_nm(x)
@@ -238,6 +237,7 @@ def tpaplot_multi(
         label_offset_x=0,
         label_y_increment=0,
         lineshape = 'lorentzian',
+        title = None,
         show_x = True,
     ):
 
@@ -273,7 +273,7 @@ def tpaplot_multi(
             x = x + x_offset * (i - fromentry + 1)
 
             if nm:
-                x = eV_to_nm(x) * 2
+                x = eV_to_nm(x) 
 
             if monocolour is None and colours is None:
                 current_colour = None
@@ -313,6 +313,9 @@ def tpaplot_multi(
     else:
         ax.set_xlabel('Energy /eV')
     
+    if title is not None:
+        ax.set_title(title)
+
     if show_y == False:
         ax.set_yticks([])
     if show_x == False:
