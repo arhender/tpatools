@@ -135,10 +135,10 @@ def tpaplot(
     ex_energy = tab['Excitation Energy /eV'].values
 
     if xmin is None:
-        xmin = np.min(ex_energy) - default_buffer_x_edge
+        xmin = (np.min(ex_energy) - default_buffer_x_edge) / 2
 
     if xmax is None:
-        xmax = np.max(ex_energy) + default_buffer_x_edge
+        xmax = (np.max(ex_energy) + default_buffer_x_edge) / 2
 
     rng = (xmin, xmax)
 
