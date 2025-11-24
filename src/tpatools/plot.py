@@ -54,7 +54,7 @@ def lorentzian(wavelength, intensity, width=25, rng=None, yscale=None):
         )
    
     y = sum(yvals)
-    if yscale is None:
+    if yscale is not None:
         y = y / np.max(y)
         y = y / yscale
 
@@ -142,7 +142,7 @@ def tpaplot(
 
     rng = (xmin, xmax)
 
-    labels_covered = [ex >= xmin and ex <= xmax for ex in ex_energy]
+    labels_covered = [ex / 2 >= xmin and ex / 2 <= xmax for ex in ex_energy]
 
     x, y = tpabroaden(
         ex_energy, 

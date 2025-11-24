@@ -620,6 +620,10 @@ def gather_state_data(
         Recursively gather excitation energies, transition dipoles, cross sections, and dipole moments for all output files in a given directory and compile them into a dictionary, with keys provided by the directory names
     """
 
+    if state < 1:
+        print("NOTE: Excited state numbering starts at 1 here (for your convenience). Retry with a value over 1")
+        return None
+
     basedir = Path(basedir)
     if outfilename is None:
         # Search for any files in the fallback list

@@ -9,10 +9,11 @@ def widgetplot(
         widthslide=[0.001, 0.5, 0.001, 0.1],
         xoffslide=[-1,1,0.01,0],
         yoffslide=[0,1000,10,100],
-        xminslide=[0,5,0.1,3.5],
-        xmaxslide=[0.1,5,0.1,4.8],
+        xminslide=[0,5,0.1,1.5],
+        xmaxslide=[0.1,5,0.1,4],
         label_offset_y = 20,
         label_offset_x = 0,
+        label_y_increment = 0,
         monocolour = None,
     ):
     """
@@ -60,6 +61,7 @@ def widgetplot(
         value=xmaxslide[3],
     )
     showybox = widgets.Checkbox(value=False, description='Show y axis')
+    showxbox = widgets.Checkbox(value=False, description='Show x axis')
     showlabelsbox=widgets.Checkbox(value=True, description='Show Labels')
 
     if len(tabledict) > 1:
@@ -89,6 +91,10 @@ def widgetplot(
         extraplotparams=widgets.fixed(extraplotparams),
         label_offset_y = widgets.fixed(label_offset_y),
         label_offset_x = widgets.fixed(label_offset_x),
+        lineshape=widgets.fixed('lorentzian'),
+        title = widgets.fixed(None),
+        show_x = showxbox,
+        label_y_increment = widgets.fixed(label_y_increment),
     )
 
 def showtab(entryno, tabledict, roundto=3):
