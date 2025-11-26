@@ -83,21 +83,21 @@ def main():
         mult = args.mult,
     )
 
-    if args.xmin is None:
-        xmin = np.min(tab['Excitation Energy /eV']) - 1
-    else:
-        xmin = args.xmin
+    #if args.xmin is None:
+    #    xmin = np.min(tab['Excitation Energy /eV']) - 1
+    #else:
+    #    xmin = args.xmin
 
-    if args.xmax is None:
-        xmax = np.max(tab['Excitation Energy /eV']) + 1
-    else:
-        xmax = args.xmax
+    #if args.xmax is None:
+    #    xmax = np.max(tab['Excitation Energy /eV']) + 1
+    #else:
+    #    xmax = args.xmax
 
     tpaplot(
         tab,
         width=args.broadening,
-        xmin = xmin,
-        xmax= xmax,
+        xmin = args.xmin,
+        xmax= args.xmax,
         nm=args.nm,
         save=args.savefile,
         labels = args.labels,
