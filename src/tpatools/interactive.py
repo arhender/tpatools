@@ -97,9 +97,9 @@ def widgetplot(
         label_y_increment = widgets.fixed(label_y_increment),
     )
 
-def showtab(entryno, tabledict, roundto=3):
-    print(f'{list(tabledict.keys())[entryno -1]}:\n')
-    df = tabledict[list(tabledict.keys())[entryno - 1]]
+def showtab(entryname, tabledict, roundto=3):
+    print(f'{entryname}:\n')
+    df = tabledict[entryname]
     print(
         df.to_string(
             index = False,
@@ -108,11 +108,13 @@ def showtab(entryno, tabledict, roundto=3):
     )
 
 def tpatabs(tabledict, roundto=3):
-    entryslider = widgets.IntSlider(min=1,max=len(tabledict))
+    entrydropdown = widgets.Dropdown(
+        options = tabledict.keys(),
+        description = 'System',
+    )
     widgets.interact(
         showtab, 
-        entryno=entryslider, 
+        entryname=entrydropdown, 
         tabledict=widgets.fixed(tabledict),
         roundto=widgets.fixed(roundto),
     )
-
