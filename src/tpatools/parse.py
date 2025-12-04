@@ -574,7 +574,9 @@ def parse_exspec(filepath):
     oscvel = []
     osclen = []
     with filepath.open() as log:
-        for line in log.readlines():
+        for i, line in enumerate(log.readlines()):
+            if "Excitation spectrum" in line and i != 0:
+                break
             if _is_int(line.split()[0]):
                 excno.append(int(line.split()[0]))
                 hartree.append(float(line.split()[2]))

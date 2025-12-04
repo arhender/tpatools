@@ -36,6 +36,7 @@ def voight(wavelength, intensity, width=25, shape=0.5, yscale=None, rng=None):
     
     return x, y
 
+
 def lorentzian(wavelength, intensity, width=25, rng=None, yscale=None):
     if rng is None:
         l = np.min(wavelength) - 0.25*(np.max(wavelength) - np.min(wavelength))
