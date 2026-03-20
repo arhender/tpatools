@@ -383,6 +383,7 @@ def parse_escf(
         """,
         re.DOTALL | re.X
     )
+
     pattern_2PA = re.compile(
         r""" 
             Two-photon\sabsorption\samplitudes\sfor
@@ -396,13 +397,22 @@ def parse_escf(
             omega_1\s+
             (?P<photon_1>[+-]?[\d.]+(?:[eE][+-]?\d+)?)
             .*?omega_2\s+
-            (?P<photon_2>[+-]?[\d.]+(?:[eE][+-]?\d+)?)
+            (?P<photon_2>[+-]?[\d.]+(?:[eE][+-]?\d+)?).*?
+            Component\sab\shas\sfrequencies.*?
+            \s+xx\s+(?P<xx>[+-]?[\d.]+(?:[eE][+-]?\d+)?)
+            \s+xy\s+(?P<xy>[+-]?[\d.]+(?:[eE][+-]?\d+)?)
+            \s+xz\s+(?P<xz>[+-]?[\d.]+(?:[eE][+-]?\d+)?)
+            \s+yx\s+(?P<yx>[+-]?[\d.]+(?:[eE][+-]?\d+)?)
+            \s+yy\s+(?P<yy>[+-]?[\d.]+(?:[eE][+-]?\d+)?)
+            \s+yz\s+(?P<yz>[+-]?[\d.]+(?:[eE][+-]?\d+)?)
+            \s+zx\s+(?P<zx>[+-]?[\d.]+(?:[eE][+-]?\d+)?)
+            \s+zy\s+(?P<zy>[+-]?[\d.]+(?:[eE][+-]?\d+)?)
+            \s+zz\s+(?P<zz>[+-]?[\d.]+(?:[eE][+-]?\d+)?)
             .*?transition\sstrength\s\[a\.u\.\]:\s+
         (?P<tpa_strength>-?\d+\.\d+(?:[eE][-+]?\d+)?)
         """,
         re.DOTALL | re.X
     )
-
     gsdat = pattern_gs.search(log).groupdict()
 
     data['mu_00'] = {}
@@ -459,6 +469,17 @@ def parse_escf(
         ])
         states[i].set_strength(
             float(statedat['tpa_strength'])
+        )
+        states[i].set_tpa_tensor(
+            float(statedat['xx']),
+            float(statedat['xy']),
+            float(statedat['xz']),
+            float(statedat['yx']),
+            float(statedat['yy']),
+            float(statedat['yz']),
+            float(statedat['zx']),
+            float(statedat['zy']),
+            float(statedat['zz'])
         )
 
     if egradavail:

@@ -34,6 +34,8 @@ class State():
 
         self.permanent_dipole = {}
 
+        self.tpa_tensor = {}
+
     def set_strength(self, value):
         self.transition_strength = value
 
@@ -44,6 +46,30 @@ class State():
         self.excitation_energy = excitation_energy
         if degenerateTPA:
             self.photon_energies = [excitation_energy/2, excitation_energy/2]
+
+    def set_tpa_tensor(
+            self,
+            xx,
+            xy,
+            xz,
+            yx,
+            yy,
+            yz,
+            zx,
+            zy,
+            zz
+        ):
+        self.tpa_tensor = {
+            'xx' : xx,
+            'xy' : xy,
+            'xz' : xz,
+            'yx' : yx,
+            'yy' : yy,
+            'yz' : yz,
+            'zx' : zx,
+            'zy' : zy,
+            'zz' : zz,
+        }
 
     def set_photon_energies(self, photon_energies):
         self.photon_energies = photon_energies
