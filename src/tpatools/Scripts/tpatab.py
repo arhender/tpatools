@@ -50,11 +50,18 @@ def main():
         action='store_true',
         help="whether or not to include the multiplicity in labels (ex S1) - disabled by default",
     )
+    parser.add_argument(
+        '-N',
+        '--beamtype',
+        type=int,
+        default=None,
+        help = "N value for computing the 2PA cross section",
+    )
 
     args = parser.parse_args()
 
     filepath = filepath_searcher(args.filepath)
-    df = tpa_table(filepath, irrep=args.noirrep, mult=args.mult, compact=args.compact)
+    df = tpa_table(filepath, irrep=args.noirrep, mult=args.mult, compact=args.compact, N=args.beamtype)
     if args.verbose == False:
         df.drop(
             columns=['Excitation Energy /eV', '2PA Strength /a.u.'],

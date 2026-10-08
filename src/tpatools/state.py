@@ -17,6 +17,7 @@ class State():
         self.mult = pieces[1]
         self.irrep = pieces[2]
         self.overallno = overallno
+        self.nondegenerate = False
 
         if homo is not None:
             self.homo = int(homo)
@@ -44,8 +45,9 @@ class State():
 
     def set_excitation_energy(self, excitation_energy, degenerateTPA=True):
         self.excitation_energy = excitation_energy
-        if degenerateTPA:
-            self.photon_energies = [excitation_energy/2, excitation_energy/2]
+        #if degenerateTPA:
+        #    try:
+        #        self.photon_energies = [excitation_energy/2, excitation_energy/2]
 
     def set_tpa_tensor(
             self,
@@ -73,6 +75,9 @@ class State():
 
     def set_photon_energies(self, photon_energies):
         self.photon_energies = photon_energies
+        if photon_energies[0] != photon_energies[1]:
+            self.nondegenerate = True
+
 
     def set_transition_dipole(self, norm, x, y, z):
         self.transition_dipole = {
@@ -152,7 +157,13 @@ class State():
         return 0
 
 
-    def get_cross_section(self, lineshape="lorentzian", linewidth=0.1, N=4):
+    def get_cross_section(self, lineshape="lorentzian", linewidth=0.1, N=None):
+        if N is None:
+            if self.nondegenerate:
+                N = 8
+            else:
+                N = 4
+
         cross_section = (
             N * (np.pi**2) * (State.bohr_radius**5) * State.fine_structure 
             * self.photon_energies[0] * self.photon_energies[1] 

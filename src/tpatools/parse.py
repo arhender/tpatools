@@ -553,7 +553,7 @@ def tpa_table(
         irrep = True,
         mult = False,
         compact = False, # Print more compact names
-        N = 4,
+        N = None,
         linewidth = 0.1,
         lineshape = 'lorentzian',
     ):
