@@ -65,7 +65,7 @@ def main():
     if args.verbose == False:
         if args.compact:
             df.drop(
-                columns=['mu_01', 'delta_2PA /au'],
+                columns=['mu_01 /D', 'delta_2PA /au'],
                 inplace=True
             )
         else:
