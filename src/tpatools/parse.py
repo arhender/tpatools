@@ -169,6 +169,7 @@ def parse_ricc2(filepath):
         states.append(
             State(_parse_ricc2_name(statedat))
         )
+
         states[i].set_excitation_energy(
             float(statedat['excitation_energy']),
             degenerateTPA=False,
@@ -185,9 +186,27 @@ def parse_ricc2(filepath):
             *['NA', 'NA', 'NA']
         )
 
+    if not states:
+        missing_opa_spec = True
+    else:
+        missing_opa_spec = False
+
 
     for i, match in enumerate(pattern_2PA.finditer(log)):
         statedat = match.groupdict()
+
+        if missing_opa_spec:
+            states.append(
+                State(_parse_ricc2_name(statedat))
+            )
+            states[i].set_excitation_energy(
+                float(statedat['excitation_energy']),
+                degenerateTPA=False,
+            )
+            states[i].set_transition_dipole(
+                *['NA', 'NA', 'NA', 'NA']
+            )
+
 
         states[i].set_photon_energies([
             float(statedat['photon_1']),

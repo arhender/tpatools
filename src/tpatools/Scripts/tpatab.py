@@ -63,10 +63,16 @@ def main():
     filepath = filepath_searcher(args.filepath)
     df = tpa_table(filepath, irrep=args.noirrep, mult=args.mult, compact=args.compact, N=args.beamtype)
     if args.verbose == False:
-        df.drop(
-            columns=['Excitation Energy /eV', '2PA Strength /a.u.'],
-            inplace=True,
-        )
+        if args.compact:
+            df.drop(
+                columns=['mu_01', 'delta_2PA /au'],
+                inplace=True
+            )
+        else:
+            df.drop(
+                columns=['Transition Dipole /D', '2PA Strength /a.u.'],
+                inplace=True,
+            )
 
     if args.tex == True:
         print(
