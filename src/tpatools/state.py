@@ -168,7 +168,7 @@ class State():
             N * (np.pi**2) * (State.bohr_radius**5) * State.fine_structure 
             * self.photon_energies[0] * self.photon_energies[1] 
             * self.transition_strength
-            / (State.light_speed * linewidth / 27.2)
+            / (State.light_speed * linewidth / 27.2114)
         )
         cross_section = cross_section * 10**50
 
