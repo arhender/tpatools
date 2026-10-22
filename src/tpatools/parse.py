@@ -657,6 +657,7 @@ def gather_state_data(
         osc = False,
         search_for_egrad = True,
         sortfunc = None,
+        N = None,
     ):
     """
         Recursively gather excitation energies, transition dipoles, cross sections, and dipole moments for all output files in a given directory and compile them into a dictionary, with keys provided by the directory names
@@ -738,7 +739,7 @@ def gather_state_data(
                     collectdata[key] = {
                         '$\\Delta E$ /eV' : statedata.excitation_energy * 27.2114,
                         '$\delta^{\\textrm{2PA}}$ /a.u.' : statedata.transition_strength,
-                        '$\\sigma^{\\textrm{2PA}}$ /GM' : statedata.get_cross_section(),
+                        '$\\sigma^{\\textrm{2PA}}$ /GM' : statedata.get_cross_section(N = N),
                         '$|\\mu_{00}|$ /D' : mu_00,
                         '$|\\mu_{01}|$ /D' : mu_01,
                         '$|\\mu_{11}|$ /D' : mu_11,
@@ -748,7 +749,7 @@ def gather_state_data(
                     collectdata[key] = {
                         'ex. E' : statedata.excitation_energy * 27.2114,
                         'delta /a.u.' : statedata.transition_strength,
-                        'sigma /GM' : statedata.get_cross_section(),
+                        'sigma /GM' : statedata.get_cross_section(N = N),
                         'mu_00' : mu_00,
                         'mu_01' : mu_01,
                         'mu_11' : mu_11,
@@ -759,7 +760,7 @@ def gather_state_data(
                     collectdata[key] = {
                         'Excitation Energy /eV' : statedata.excitation_energy * 27.2114,
                         '2PA Strength /a.u.' : statedata.transition_strength,
-                        'Cross Section /GM' : statedata.get_cross_section(),
+                        'Cross Section /GM' : statedata.get_cross_section(N = N),
                         'Ground State Dipole Moment /D' : mu_00,
                         'Transition Dipole Moment /D' : mu_01,
                         'Excited State Dipole Moment /D' : mu_11,
@@ -770,7 +771,7 @@ def gather_state_data(
                     collectdata[key] = {
                         '$\\Delta E$ /eV' : statedata.excitation_energy * 27.2114,
                         '$\delta^{\\textrm{2PA}}$ /a.u.' : statedata.transition_strength,
-                        '$\\sigma^{\\textrm{2PA}}$ /GM' : statedata.get_cross_section(),
+                        '$\\sigma^{\\textrm{2PA}}$ /GM' : statedata.get_cross_section(N = N),
                         '$|\\mu_{00}|$ /D' : mu_00,
                         '$|\\mu_{01}|$ /D' : mu_01,
                         '$|\\mu_{11}|$ /D' : mu_11,
@@ -779,7 +780,7 @@ def gather_state_data(
                     collectdata[key] = {
                         'ex. E' : statedata.excitation_energy * 27.2114,
                         'delta /a.u.' : statedata.transition_strength,
-                        'sigma /GM' : statedata.get_cross_section(),
+                        'sigma /GM' : statedata.get_cross_section(N = N),
                         'mu_00' : mu_00,
                         'mu_01' : mu_01,
                         'mu_11' : mu_11,
@@ -789,7 +790,7 @@ def gather_state_data(
                     collectdata[key] = {
                         'Excitation Energy /eV' : statedata.excitation_energy * 27.2114,
                         '2PA Strength /a.u.' : statedata.transition_strength,
-                        'Cross Section /GM' : statedata.get_cross_section(),
+                        'Cross Section /GM' : statedata.get_cross_section(N = N),
                         'Ground State Dipole Moment /D' : mu_00,
                         'Transition Dipole Moment /D' : mu_01,
                         'Excited State Dipole Moment /D' : mu_11,
